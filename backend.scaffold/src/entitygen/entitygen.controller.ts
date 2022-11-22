@@ -41,8 +41,9 @@ export class EntitygenController {
 
     });
 
-    if (fs.existsSync(`./src/entity/${entityName}`)) {
-
+    if (fs.existsSync(`${process.cwd()}/src/entity/${entityName}`)) {
+      await fsPromises.unlink(`${process.cwd()}/src/entity/${entityName}`);
+      await conn.createQueryRunner().query(`DROP TABLE '${entityName}'`)
     }
 
   
