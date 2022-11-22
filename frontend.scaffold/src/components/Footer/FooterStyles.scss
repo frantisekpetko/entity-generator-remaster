@@ -1,0 +1,22 @@
+
+.footer-text {
+  font-size: 1rem !important;
+  margin: 0 2em;
+}
+
+.footer {
+  overflow: hidden;
+  border: transparent groove medium;
+  background-color: rgba(218,165,32, 0.6) !important;
+  height: 4em;
+  width: 100%;
+  flex-shrink: 0;
+
+  -webkit-transition: background-color 0.2s linear 0.2s; /* For Safari 3.1 to 6.0 */
+  transition: background-color 0.2s linear 0.2s;
+
+}
+
+.footer:hover {
+  background-color: rgba(218,165,32, 0.9) !important;
+}

@@ -1,0 +1,33 @@
+
+.Checkbox[type=checkbox] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  color: black;
+  border: 1px solid black;
+  accent-color: #daa520 !important;
+  background-color: #daa520 !important;
+  width: 3em;
+  height: 3em;
+  content: '\2714';
+}
+
+.Checkbox[type=checkbox] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  color: black;
+  accent-color: #daa520 !important;
+  background-color: #daa520 !important;
+  width: 3em;
+  content: '\2714';
+
+}
+
+.Checkbox[type=checkbox]:checked:before {
+  position: relative;
+  font-size: 3em;
+  bottom: 0.25em;
+  left: 0.1em;
+  content: '\2714';
+  border: none !important;
+
+}

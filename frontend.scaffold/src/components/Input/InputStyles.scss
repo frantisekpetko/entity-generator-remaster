@@ -1,0 +1,52 @@
+.Input {
+  background-color: rgba(0, 0, 0, 0.09);
+  border: none;
+  padding: 1em 1em;
+  color: black;
+  border-bottom: solid rgba(0, 0, 0, 0.3) 3px;
+  width: 200px;
+
+  font-size: 1em;
+}
+
+.Input:focus {
+  outline: none;
+  border-bottom: solid rgba(218, 165, 32, 0.7) 3px;
+  background-color: rgba(0, 0, 0, 0.05);
+  animation: shake 0.2s ease-in-out 0s 2;
+}
+
+Input::placeholder {
+  opacity: 1;
+  transition: opacity .1s ease;
+}
+
+Input.active::placeholder {
+  opacity: 0;
+  transition: opacity .1s ease;
+
+}
+
+label {
+  opacity: 1;
+  //transition: opacity .1s ease;
+}
+
+label.faded-label {
+  opacity: 1;
+
+}
+
+@keyframes shake {
+  0% { margin-left: 0rem; scale: 1.15;}
+  25% { margin-left: 0.5rem; scale: 1;}
+  75% { margin-left: -0.5rem; scale: 1.15;}
+  100% { margin-left: 0rem; scale: 1;}
+}
+
+@keyframes faded {
+  0% { opacity: 0.75}
+  25% { opacity: 0.5}
+  75% { opacity: 0.25}
+  100% { opacity: 0}
+}
