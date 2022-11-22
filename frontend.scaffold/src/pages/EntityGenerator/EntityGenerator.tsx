@@ -16,9 +16,10 @@ export default function Entity() {
 
     useEffect(() => {
         (async () => {
-            const { data } = await (await JsonFetch.get('entitygen')).json();
-
-            let transformedData: any = data.map((item: any) => ({ label: item.entityName, value: { name: item.table } }));
+            const data = await (await JsonFetch.get('entitygen')).json();
+            let transformedData: any[] = [];
+            if (data.length > 0)
+                transformedData = data.map((item: any) => ({ label: item.entityName, value: { name: item.table } }));
 
             console.log({ data })
 

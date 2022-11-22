@@ -10,7 +10,7 @@ async function bootstrap() {
   //fse.mkdirSync(`${rootx}/entity`, { recursive: true })
   //fse.mkdirSync(`${root}/data`, { recursive: true });
   const app = await NestFactory.create(AppModule);
-  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+  //app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
   const port = 3000;
 
   app.enableCors({

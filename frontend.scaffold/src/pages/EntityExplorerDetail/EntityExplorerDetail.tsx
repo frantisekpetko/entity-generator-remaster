@@ -23,11 +23,11 @@ export default function EntityExplorerDetail (props: any): ReturnType<React.FC> 
 
     useEffect(() => {
         (async () => {
-            const { data } = await (await JsonFetch.get('entitygen')).json();
+            const data = await (await JsonFetch.get('entitygen')).json();
+            let transformedData: any[] = [];
+            if (data.length > 0)
+                transformedData = data.map((item: any) => ({ label: item.entityName, value: { name: item.table } }));
 
-            let transformedData: any = data.map((item: any) => ({ label: item.entityName, value: { name: item.table } }));
-
-            console.log({ data })
      
             
             const {data: entityData} = await (await JsonFetch.get(`entitygen/entity/${entity}`)).json();

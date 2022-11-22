@@ -12,10 +12,10 @@ export default function EntityExplorer(props: any): ReturnType<React.FC> {
 
     const [entities, setEntities] = useState<{entityName: string, filename: string, table: string}[]>([]);
 
-    const [loading, setLoading] = useState<boolean>(false)
+    const [loading, setLoading] = useState<boolean>(true)
 
     async function getData() {
-        setLoading(true);
+        //setLoading(true);
         const data = await (await JsonFetch.get('entitygen')).json();
         console.log({ data })
         setEntities(data);
@@ -63,9 +63,22 @@ export default function EntityExplorer(props: any): ReturnType<React.FC> {
                              onClick={async () => {
                                 //const x = await JsonFetch.delete(`entitygen/entity/${item.filename}`);
                                 //console.log({x})
-                                 JsonFetch.delete(`entitygen/entity/${item.filename}`).then(() => setTimeout(async () => await getData(), 1500))
+                                setLoading(true);
+                                //JsonFetch.delete(`entitygen/entity/${item.filename}`).then(async () => await getData()).catch((e) => console.log(e));
                                 //setTimeout(async () => await getData(), 1500)
                                 //await getData();
+                                try {
+                                    //await fetch(`entitygen/entity/${item.filename}`, {method: 'DELETE'});
+                                    await JsonFetch.delete(`entitygen/entity/${item.filename}`);
+                                    await getData();
+                                } catch (error) {
+                                    console.warn('Error',error);
+                                }
+                                finally {
+                                    setLoading(false);
+                                }
+                              
+                             
                             
                             }}
                             />
