@@ -41,7 +41,7 @@ export default function EntityExplorerDetail (props: any): ReturnType<React.FC> 
     return <>
         <Navigation/>
  
-        <EntityEditor data={data} heading={`Entity editor (${entity})`} entities={entities}/>
+        <EntityEditor data={data} heading={`Entity editor`} entities={entities} isEditedEntity={true}/>
           
         <Footer/>
     

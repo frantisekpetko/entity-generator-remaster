@@ -12,7 +12,7 @@ import { JsonFetch } from '@/utils/net';
 import {Column, FormState} from './types';
 import EntityEditorStyles from "./EntityEditorStyles.module.scss";
 
-export default function EntityEditor(props: { data: any, heading: string, entities: { entityName: string, filename: string, table: string }[] }): ReturnType<React.FC>{
+export default function EntityEditor(props: { data: any, isEditedEntity: boolean, heading: string, entities: { entityName: string, filename: string, table: string }[] }): ReturnType<React.FC>{
 
     let originalEntityName = useRef('');
 
@@ -279,7 +279,8 @@ export default function EntityEditor(props: { data: any, heading: string, entiti
                          name: formState.name, 
                          columns: [...formState.columns],
                          relationships: [...formState.relationships],
-                         originalEntityName: originalEntityName.current
+                         originalEntityName: originalEntityName.current,
+                         isEditedEntity: props.isEditedEntity
                     })
                 ).json();
                 setEntityModelTxt(txt.data);

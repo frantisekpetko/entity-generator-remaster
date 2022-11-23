@@ -5,7 +5,7 @@ import { promises as fsPromises } from 'fs';
 import fse from 'fs-extra';
 import fs from "fs";
 import { root } from '../config/paths';
-import { datatypes, getStringEntity, columnString } from './stringmaterials';
+import { datatypes, getStringEntity, columnString, getFromBetween } from './stringmaterials';
 import { capitalizeFirstLetter, getObjectBetweenParentheses } from 'src/utils/string.functions';
 import { QueryRunner } from "typeorm";
 import { getConnection } from 'typeorm';
@@ -52,6 +52,7 @@ export class EntitygenController {
 
     @Get('/entity/:entityName')
     async getEntityDataForView(@Param('entityName') entityName): Promise<any> {
+        /*
         const getFromBetween = {
             results: [],
             string: "",
@@ -92,101 +93,10 @@ export class EntitygenController {
                 return this.results;
             }
         };
+        */
 
 
-        type Column = {
-            nameOfColumn: string,
-            datatype: string,
-            notNull: boolean,
-            unique: boolean,
-            index: boolean,
-        }
-
-        type FormState = {
-            name?: string,
-            columns?: Column[],
-            relationships?: {
-                type: string,
-                table: string
-            }[],
-        }
-
-
-        let data: FormState = {};
-
-        const txt = await fsPromises.readFile(`./src/entity/${entityName}.entity.ts`, 'utf8');
-        const txtWithoutWhiteSpace = txt.replace(/ /g, '').replace(/\n/g, '');
-        this.logger.log(txtWithoutWhiteSpace, 'txt');
-        const txtArray = txtWithoutWhiteSpace.split(';').map(item => item + ';').filter(item => item.startsWith('@Index') || item.startsWith('@Column'));
-        this.logger.log(JSON.stringify(txtArray, null, 4), 'txtArray');
-
-        const tableName: string = getFromBetween.get(txtWithoutWhiteSpace, "@Entity({name:", "})");
-
-        data.name = tableName[0].replace(/'/g, '');
-
-
-
-        const columnData = getFromBetween.get(txtWithoutWhiteSpace, "@Column({", "})");
-        const parsedColumnData = JSON.parse(JSON.stringify(columnData));
-
-        let columns: Column[] = [];
-
-        //let entireColumnData = getFromBetween.get(txtWithoutWhiteSpace, "@Column({", "@");
-        let entireColumnData = getFromBetween.get(txtWithoutWhiteSpace, "@Column({", ";@");
-        //this.logger.log(txtWithoutWhiteSpace, 'txt')
-
-
-
-        txtArray.forEach((element) => {
-
-            let isUnique = getFromBetween.get(element + ':', 'unique:', ':');
-            this.logger.log(element, 'element')
-            isUnique = isUnique.length < 1 ? false : Boolean(isUnique);
-            let datatype = getFromBetween.get(element, 'type:"', '"')[0];
-            this.logger.warn(getFromBetween.get(element, 'type:"', '"'), 'datatype');
-            let notNull = getFromBetween.get(element + ':', 'nullable:', ':');
-            notNull = notNull.length < 1 ? false : Boolean(isUnique);
-
-
-            let columnName = getFromBetween.get(element, "})", ";")[0].split(':')[0];
-
-            if (columnName.charAt(columnName.length - 1) === '!') {
-                columnName = columnName.substring(0, columnName.length - 1);
-            }
-
-            const isIndex = element.startsWith('@Index()');
-            //this.logger.debug(columnName, 'columnName')
-            /*
-          */
-
-            columns.push({
-                nameOfColumn: columnName,
-                notNull: notNull,
-                unique: isUnique,
-                index: isIndex,
-                datatype: datatype
-            })
-            this.logger.log('##################');
-
-
-        });
-
-
-
-
-
-
-        //entireColumnData = getFromBetween.get(entireColumnData, ')', ';')
-        //this.logger.warn(getFromBetween.get(entireColumnData[0], "})", ";")[0].split(':'));
-        this.logger.debug(JSON.parse(JSON.stringify(entireColumnData))[0]);
-        this.logger.log(JSON.stringify(columns));
-        data.columns = [...columns];
-        data.relationships = [{
-            type: 'OneToOne',
-            table: ''
-        }];
-
-        return { data: data };
+        return this.entityGenService.getEntityDataForView(entityName);
     }
 
 
@@ -218,6 +128,7 @@ export class EntitygenController {
             const Model = capitalizeFirstLetter(data.name);
 
             let imports = '';
+            let importsArray = [];
 
             let cols: string[] = data.columns.map((item: Column) => {
                 //const additionalProperties = `${!item.notNull ? 'nullable: true,' : ''}${item.unique ? '\nunique: true' : ''}`;
@@ -228,8 +139,8 @@ export class EntitygenController {
                 //const parameters = datatypes[item.datatype]() === 'number' ? datatypes[item.datatype]() : `${datatypes[item.datatype]()}`;
                 this.logger.debug(item);
                 const column = columnString(item, datatypes, additionalProperties);
-                imports = `${item.index ? `import {Index} from "typeorm";` : ''}`;
-
+                //imports = `${item.index ? `import {Index} from "typeorm";` : ''}`;
+                importsArray.push('Index')
 
                 return column;
             });
@@ -240,35 +151,90 @@ export class EntitygenController {
                 'MANY_TO_ONE' = 'ManyToOne',
                 'MANY_TO_MANY' = 'ManyToMany'
             }
+            let relArray = [];
 
-            let _relationships: string[] = data.relationships.map((item: Relationship) => {
+            /*let _relationships: string[] = */
+            data.relationships.forEach((item: Relationship) => {
 
                 if (data.relationships[0].table !== '') {
+         
                     let rel = '';
                     const entity = capitalizeFirstLetter(item.table);
                     if (item.type === RelationshipType.ONE_TO_ONE) {
                         rel = `
 @JoinColumn()
 @${item.type}(() => ${entity})
-${item.table}: ${entity}
+${item.table}: ${entity};
 `;
+                        importsArray = [...importsArray, item.type, 'JoinColumn'];
+                        relArray.push(rel);
+                        
+//  add to imports OneToOne, JoinColumn
+                    }
+
+                    if (item.type === RelationshipType.ONE_TO_MANY) {
+                        rel = `
+@${item.type}(() => ${entity}, (${item.table}) => ${item.table}.${model})
+${item.table}s: ${entity}[];
+`;
+                        importsArray.push(item.type);
+                        relArray.push(rel);
+//  add to imports OneToMany
+//  change relationship at second entity
+                    }
+
+                    if (item.type === RelationshipType.MANY_TO_ONE) {
+                        rel = `
+@${item.type}(() => ${entity}, (${item.table}) => ${item.table}.${model}s)
+${item.table}: ${entity};
+`;
+                        importsArray.push(item.type);
+                        relArray.push(rel);
+                    }
+//  add to imports ManyToOne
+//  change relationship at second entity
+
+                    if (item.type === RelationshipType.MANY_TO_MANY) {
+                        rel = `
+@JoinTable()                        
+@${item.type}(() => ${entity}, (${item.table}) => ${item.table}.${model}s)
+${item.table}s: ${entity}[];
+`;
+                        importsArray = [...importsArray, item.type, 'JoinTable'];
+                        relArray.push(rel);
+//  add to imports JoinTable, ManyToMany 
+//  change relationship at second entity without JoinTable, 
+//      if there is another JoinTable, drop it
                     }
 
 
-                    return rel;
+                    //return rel;
                 }
 
             });
 
             // content = content.replace(/{columns}/g, cols.join(''));
-            let relationships = '';
+
+            //let relationships: string = relArray.join('\n');
+            let relationships: string = '';
+
+            imports = `import {${importsArray.join(', ')}} from 'typeorm'`;
             //content = content.replace(/{imports}/g, imports);
             const content = getStringEntity(imports, model, Model, cols.join(''), relationships);
             //this.logger.debug(content, data.name)
 
             this.logger.debug(content, data.name);
-
+            /*
             if (data.originalEntityName !== '' && fs.existsSync(`./src/entity/${data.originalEntityName}.entity.ts`)) {
+                await Promise.all([
+                    fsPromises.rename(`./src/entity/${data.originalEntityName}.entity.ts`, `./src/entity/${model}.entity.ts`),
+                    conn.createQueryRunner().query(`DROP TABLE '${data.originalEntityName}'`)
+                ]);
+
+            }
+            */
+
+            if (data.isEditedEntity) {
                 await Promise.all([
                     fsPromises.rename(`./src/entity/${data.originalEntityName}.entity.ts`, `./src/entity/${model}.entity.ts`),
                     conn.createQueryRunner().query(`DROP TABLE '${data.originalEntityName}'`)

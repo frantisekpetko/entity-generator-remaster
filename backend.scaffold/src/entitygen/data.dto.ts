@@ -37,4 +37,8 @@ export class Data {
 
   @IsNotEmpty()
   originalEntityName: string;
+
+  @IsNotEmpty()
+  isEditedEntity: boolean;
+
 }

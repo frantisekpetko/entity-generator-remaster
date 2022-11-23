@@ -31,7 +31,7 @@ export default function Entity() {
 
     return <>
         <Navigation />
-        <EntityEditor data={[]} heading={'Entity Generator'} entities={entities}  />
+        <EntityEditor data={[]} heading={'Entity Generator'} entities={entities} isEditedEntity={false} />
         <Footer />
     </>;
 }
