@@ -7,17 +7,23 @@ import {
  CreateDateColumn, 
  UpdateDateColumn 
 } from 'typeorm';
+import {Index, Index} from 'typeorm'
 
 
-@Entity({ name: 'dwax44' })
-export class Dwax44 extends BaseEntity { 
+@Entity({ name: 'cupakabra' })
+export class Cupakabra extends BaseEntity { 
   @PrimaryGeneratedColumn()
   id: number;
   
   @Column({
    type: "varchar",   
   })
-  awd: string;
+  awdwad: string;
+
+  @Column({
+   type: "varchar",   
+  })
+  name: string;
 
   
   @CreateDateColumn()

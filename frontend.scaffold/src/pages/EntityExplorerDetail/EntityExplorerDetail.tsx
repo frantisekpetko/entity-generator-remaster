@@ -28,7 +28,7 @@ export default function EntityExplorerDetail (props: any): ReturnType<React.FC> 
             if (data.length > 0)
                 transformedData = data.map((item: any) => ({ label: item.entityName, value: { name: item.table } }));
 
-     
+            
             
             const {data: entityData} = await (await JsonFetch.get(`entitygen/entity/${entity}`)).json();
             console.log(entityData);

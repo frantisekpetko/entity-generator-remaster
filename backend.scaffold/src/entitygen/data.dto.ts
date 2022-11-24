@@ -36,9 +36,9 @@ export class Data {
   relationships: Relationship[];
 
   @IsNotEmpty()
-  originalEntityName: string;
+  originalEntityName?: string;
 
   @IsNotEmpty()
-  isEditedEntity: boolean;
+  isEditedEntity?: boolean;
 
 }

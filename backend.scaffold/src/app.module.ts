@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { EntitygenModule } from './entitygen/entitygen.module';
 import * as winston from 'winston';
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-win
         // other transports...
       ],
     }),
+    SharedModule
   ],
   controllers: [AppController],
   providers: [AppService],
