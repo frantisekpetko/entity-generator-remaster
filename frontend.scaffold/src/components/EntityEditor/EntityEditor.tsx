@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
-import Navigation from "../../components/Navigation";
+
 import Input from "../../components/Input";
-import Flex from "../../components/Flex";
-import Select from "../../components/Select";
-import Switch from "../../components/Switch/Switch";
-import Checkbox from "../../components/Checkbox/Checkbox";
-import Modal from '../../components/Modal';
+
+import {  
+    Button,
+    Flex,
+    Select,
+    Checkbox,
+    Modal } 
+from "@/components";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { JsonFetch } from '@/utils/net';
@@ -479,10 +482,7 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
 
 
                 <Flex direction={'column'} alignItems={'center'} width={'100%'} styles={{ marginTop: '1em', lineHeight: '2.5em', width: '100%' }}>
-                    <button type={'submit'}
-                        style={{ borderRadius: '5%', padding: '1em', textTransform: 'uppercase', lineHeight: '0em', height: '1.2em', fontSize: '1.2em', border: 'none', background: 'grey', color: 'white' }}
-
-                    >Preview</button>
+                    <Button name='Preview'/>
                 </Flex>
             </form>
 

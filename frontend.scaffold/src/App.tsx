@@ -7,9 +7,10 @@ import {
   Route,
 } from "react-router-dom";
 import Welcome from "./pages/Welcome";
-import EntityGenerator from "./pages/EntityGenerator";
-import EntityExplorer from "./pages/EntityExplorer";
-import EntityExplorerDetail from "./pages/EntityExplorerDetail";
+import EntityGenerator from "@/pages/EntityGenerator";
+import EntityExplorer from "@/pages/EntityExplorer";
+import EntityExplorerDetail from "@/pages/EntityExplorerDetail";
+import DatabaseAssistant from '@/pages/DatabaseAssistant';
 
 
 function App() {
@@ -34,6 +35,10 @@ function App() {
     {
       path: "/explorer/:entity",
       element: <EntityExplorerDetail />,
+    },
+    {
+      path: '/assistant',
+      element: <DatabaseAssistant/>
     }
   ]);
 

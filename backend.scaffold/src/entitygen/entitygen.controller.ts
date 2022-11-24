@@ -145,7 +145,9 @@ export class EntitygenController {
                 this.logger.debug(item);
                 const column = columnString(item, datatypes, additionalProperties);
                 //imports = `${item.index ? `import {Index} from "typeorm";` : ''}`;
-                importsArray.push('Index')
+
+                if (!(importsArray.includes('Index')))
+                    importsArray.push('Index')
 
                 return column;
             });
@@ -291,7 +293,7 @@ export class EntitygenController {
             }
             */
 
-            if (data.isEditedEntity) {
+            if (data.isEditedEntity && data.originalEntityName !== '') {
                 await Promise.all([
                     fsPromises.rename(`./src/entity/${data.originalEntityName}.entity.ts`, `./src/entity/${model}.entity.ts`),
                     conn.createQueryRunner().query(`DROP TABLE '${data.originalEntityName}'`)

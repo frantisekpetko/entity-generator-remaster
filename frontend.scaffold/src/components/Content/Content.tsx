@@ -31,7 +31,7 @@ const cardInfo: CardInfo[] = [
         name: 'Database Assistant',
         description: 'This generator/assistant helps you with routine tasks at database, like seeding data to database, cleaning up and removing data from database and re-creating of database schema.',
         info: 'dawadw',
-        path: '/wadwaddaw'
+        path: '/assistant'
     }
 ]
 

@@ -8,6 +8,7 @@ import { EntitygenModule } from './entitygen/entitygen.module';
 import * as winston from 'winston';
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import { SharedModule } from './shared/shared.module';
+import { AssistantModule } from './assistant/assistant.module';
 
 @Module({
   imports: [
@@ -32,7 +33,8 @@ import { SharedModule } from './shared/shared.module';
         // other transports...
       ],
     }),
-    SharedModule
+    SharedModule,
+    AssistantModule
   ],
   controllers: [AppController],
   providers: [AppService],
