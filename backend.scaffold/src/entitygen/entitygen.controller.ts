@@ -121,14 +121,15 @@ export class EntitygenController {
     @Post()
     async createEntityFile(@Body() data: Data): Promise<{ data: string }> {
         try {
-            this.logger.debug(`./backend.scaffold/templates/model.entity.stub`);
+            //this.logger.debug(`./backend.scaffold/templates/model.entity.stub`);
             const conn = getConnection();
 
             const model = data.name.toLowerCase();
             const Model = capitalizeFirstLetter(data.name);
 
-            let imports = '';
             let importsArray = [];
+
+
 
             let cols: string[] = data.columns.map((item: Column) => {
                 //const additionalProperties = `${!item.notNull ? 'nullable: true,' : ''}${item.unique ? '\nunique: true' : ''}`;
@@ -153,10 +154,11 @@ export class EntitygenController {
             }
             let relArray = [];
 
+            let entityImportsArray = [];
             /*let _relationships: string[] = */
-            data.relationships.forEach((item: Relationship) => {
-
-                if (data.relationships[0].table !== '') {
+            data.relationships.forEach((item: Relationship, index) => {
+                const tableName = data.relationships[index].table;
+                if (tableName !== '') {
          
                     let rel = '';
                     const entity = capitalizeFirstLetter(item.table);
@@ -167,7 +169,10 @@ export class EntitygenController {
 ${item.table}: ${entity};
 `;
                         importsArray = [...importsArray, item.type, 'JoinColumn'];
+                     
                         relArray.push(rel);
+
+                        entityImportsArray.push(entity);
                         
 //  add to imports OneToOne, JoinColumn
                     }
@@ -179,6 +184,7 @@ ${item.table}s: ${entity}[];
 `;
                         importsArray.push(item.type);
                         relArray.push(rel);
+                        entityImportsArray.push(entity);
 //  add to imports OneToMany
 //  change relationship at second entity
                     }
@@ -190,6 +196,7 @@ ${item.table}: ${entity};
 `;
                         importsArray.push(item.type);
                         relArray.push(rel);
+                        entityImportsArray.push(entity);
                     }
 //  add to imports ManyToOne
 //  change relationship at second entity
@@ -202,9 +209,10 @@ ${item.table}s: ${entity}[];
 `;
                         importsArray = [...importsArray, item.type, 'JoinTable'];
                         relArray.push(rel);
-//  add to imports JoinTable, ManyToMany 
-//  change relationship at second entity without JoinTable, 
-//      if there is another JoinTable, drop it
+                        entityImportsArray.push(entity);
+                        //  add to imports JoinTable, ManyToMany 
+                        //  change relationship at second entity without JoinTable, 
+                        //      if there is another JoinTable, drop it
                     }
 
 
@@ -215,12 +223,23 @@ ${item.table}s: ${entity}[];
 
             // content = content.replace(/{columns}/g, cols.join(''));
 
-            //let relationships: string = relArray.join('\n');
-            let relationships: string = '';
+            let relationships: string = relArray.join('\n');
+            //let relationships: string = '';
 
-            imports = `import {${importsArray.join(', ')}} from 'typeorm'`;
+            let imports = '';
+            if(imports.length > 0) imports = `import {${importsArray.join(', ')}} from 'typeorm'`;
+
+            let entityImports = '';
+
+            if(entityImportsArray.length > 0) {
+                entityImportsArray.forEach(entity => {
+                    const file = entity.toLowerCase();
+                    entityImports += `import ${entity} from './${file}.entity.ts;\n`
+                });
+            } 
+
             //content = content.replace(/{imports}/g, imports);
-            const content = getStringEntity(imports, model, Model, cols.join(''), relationships);
+            const content = getStringEntity(imports, model, Model, cols.join(''), relationships, entityImports);
             //this.logger.debug(content, data.name)
 
             this.logger.debug(content, data.name);

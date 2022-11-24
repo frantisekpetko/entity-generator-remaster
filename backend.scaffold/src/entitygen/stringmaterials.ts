@@ -83,7 +83,8 @@ export function getStringEntity(
   model: string,
   Model: string,
   columns: string,
-  relationships: string
+  relationships: string,
+  entityImports: string
 ): string {
   const entity = `
 import { 
@@ -95,6 +96,7 @@ import {
  UpdateDateColumn 
 } from 'typeorm';
 ${imports}
+${entityImports}
 
 @Entity({ name: '${model}' })
 export class ${Model} extends BaseEntity { 
