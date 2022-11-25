@@ -4,6 +4,7 @@ import headerImg from "../../assets/header.png";
 import Flex from "../Flex";
 import {useNavigate} from "react-router-dom";
 import { Link } from 'react-router-dom';
+import { NavLink } from "react-router-dom";
 
 
 
@@ -25,16 +26,35 @@ export default function Navigation() {
                         styles={{padding: '0 2em'}}
                     >
                         <>
-                            <Link to={'/entity'}>Entity generator</Link>
-                            <Link to={'/explorer'} >Entity explorer</Link>
+                            <NavLink 
+                                to={'/entity'}
+                                className={({ isActive }) =>
+                                    isActive ? 'ActiveLink' : undefined
+                                }
+                            >
+                                Entity generator
+                            </NavLink>
+                            <NavLink 
+                                to={'/explorer'} 
+                                className={({ isActive }) =>
+                                    isActive ? 'ActiveLink' : undefined
+                                }
+                            >
+                                Entity explorer
+                            </NavLink>
+                            <NavLink 
+                                to={'/assistant'} 
+                                className={({ isActive }) =>
+                                    isActive ? 'ActiveLink' : undefined
+                                }
+                            >
+                                Database Assistant
+                            </NavLink>
                             
                         </>
 
                     </Flex>
                 </Flex>
-
-
-
             </div>
 
          </>

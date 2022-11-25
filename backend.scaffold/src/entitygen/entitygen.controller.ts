@@ -2,16 +2,9 @@ import { EntitygenService } from './entitygen.service';
 import { Body, Post, Get, Controller, Logger, Param, Delete } from '@nestjs/common';
 import { Data, Column, Relationship } from './data.dto';
 import { promises as fsPromises } from 'fs';
-import fse from 'fs-extra';
-import fs from "fs";
-import { root } from '../config/paths';
 import { datatypes, getStringEntity, columnString, getFromBetween } from './stringmaterials';
 import { capitalizeFirstLetter, getObjectBetweenParentheses } from 'src/utils/string.functions';
-import { QueryRunner } from "typeorm";
 import { getConnection } from 'typeorm';
-import { table } from 'console';
-
-
 
 @Controller('entitygen')
 export class EntitygenController {
@@ -22,8 +15,8 @@ export class EntitygenController {
     constructor(private entityGenService: EntitygenService) { }
 
     @Delete('/entity/:entityName')
-    async deleteEntity(@Param('entityName') entityName, qR: QueryRunner) {
-        //const fileToDelete = entityName.split('.')[0];
+    async deleteEntity(@Param('entityName') entityName: string): Promise<void> {
+        /*
         const conn = getConnection();
         const fileToDelete = entityName.split('.')[0];
 
@@ -48,6 +41,8 @@ export class EntitygenController {
             await fsPromises.unlink(`${process.cwd()}/src/entity/${entityName}`);
             await conn.createQueryRunner().query(`DROP TABLE '${fileToDelete}'`)
         }
+        */
+       return this.entityGenService.deleteEntity(entityName);
 
 
 
@@ -104,7 +99,8 @@ export class EntitygenController {
 
 
     @Get()
-    async getEntityData() {
+    async getEntityData(): Promise<{ entityName: string, filename: string, table: string }[]> {
+        /*
         let items: { entityName: string, filename: string, table: string }[] = [];
         let checkIfDuplicateItems: string[] = [];
         (fs.readdirSync(`${root}/entity`)).forEach((file, i) => {
@@ -118,6 +114,8 @@ export class EntitygenController {
             }
         });
 
+        return items;*/
+        const items = this.entityGenService.getEntityData();
         return items;
     }
 

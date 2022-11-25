@@ -27,8 +27,13 @@ export class AssistantController {
     return this.assistantService.update(+id, updateAssistantDto);
   }
 
-  @Delete()
-  remove() {
-    return this.assistantService.remove();
+  @Delete('tables')
+  removeTables() {
+    return this.assistantService.removeTables();
+  }
+
+  @Delete('data')
+  removeData() {
+    return this.assistantService.removeData();
   }
 }

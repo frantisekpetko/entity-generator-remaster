@@ -24,7 +24,7 @@ export class AssistantService {
     return `This action updates a #${id} assistant`;
   }
 
-  async remove() {
+  async removeTables() {
     const conn = getConnection();
     const queryRunner = conn.createQueryRunner()
 
@@ -69,15 +69,21 @@ export class AssistantService {
     const entities = conn.entityMetadatas;
 
     for (const entity of entities) {
-      //const repository = conn.getRepository(entity.name); // Get repository
-      //await repository.clear(); // Clear each entity table's content
-
       queryRunner.query(`DROP table ${entity.tableName}`)
-
     }
 
     await queryRunner.release();
 
     return;
+  }
+
+
+  async removeData() { 
+    const entities = getConnection().entityMetadatas;
+
+    for (const entity of entities) {
+      const repository = getConnection().getRepository(entity.name); // Get repository
+      await repository.clear(); // Clear each entity table's content
+    }
   }
 }

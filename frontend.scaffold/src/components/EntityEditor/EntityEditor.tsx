@@ -12,7 +12,7 @@ from "@/components";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { JsonFetch } from '@/utils/net';
-import {Column, FormState} from './types';
+import {Column, emptyFormState, FormState} from './types';
 import EntityEditorStyles from "./EntityEditorStyles.module.scss";
 
 export default function EntityEditor(props: { data: any, isEditedEntity: boolean, heading: string, entities: { entityName: string, filename: string, table: string }[] }): ReturnType<React.FC>{
@@ -20,21 +20,7 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
     let originalEntityName = useRef('');
 
 
-    const [formState, setFormState] = useState<FormState>({
-        name: '',
-        originalName: '',
-        columns: [{
-            nameOfColumn: "",
-            datatype: 'varchar',
-            notNull: true,
-            unique: false,
-            index: false,
-        }],
-        relationships: [{
-            type: 'OneToOne',
-            table: ''
-        }]
-    });
+    const [formState, setFormState] = useState<FormState>(emptyFormState);
 
     useEffect(() => {
         originalEntityName.current = formState.name;
@@ -182,7 +168,7 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
 
 
     };
-
+    /*
     const handleChangeIndex = (name: string, column?: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
 
     }
@@ -190,6 +176,7 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
     const handleChangeUnique = (name: string, column?: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
 
     }
+    */
 
     const addColumnHandler = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
@@ -430,19 +417,6 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
                                         name: 'null'
                                     }
                                 }]
-                                /*
-                                {
-                                    label: 'Person', value:
-                                    {
-                                        name: 'person'
-                                    }
-                                },
-                                {
-                                    label: 'Animal', value:
-                                    {
-                                        name: 'animal'
-                                    }
-                                }*/
                             }
                             label={"Entity name "}
                             themeColor='#DC582A'

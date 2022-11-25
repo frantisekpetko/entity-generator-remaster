@@ -11,6 +11,7 @@ import EntityGenerator from "@/pages/EntityGenerator";
 import EntityExplorer from "@/pages/EntityExplorer";
 import EntityExplorerDetail from "@/pages/EntityExplorerDetail";
 import DatabaseAssistant from '@/pages/DatabaseAssistant';
+import NotFound from '@/pages/NotFound';
 
 
 function App() {
@@ -39,6 +40,10 @@ function App() {
     {
       path: '/assistant',
       element: <DatabaseAssistant/>
+    },
+    {
+      path: '/*',
+      element: <NotFound />
     }
   ]);
 

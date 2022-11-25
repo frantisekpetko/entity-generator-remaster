@@ -1,3 +1,4 @@
+import { root } from './../config/paths';
 import { Injectable, Logger } from '@nestjs/common';
 import { datatypes, getStringEntity, columnString, getFromBetween } from './stringmaterials';
 import { capitalizeFirstLetter, getObjectBetweenParentheses } from 'src/utils/string.functions';
@@ -5,6 +6,7 @@ import { promises as fsPromises } from 'fs';
 import { QueryRunner } from "typeorm";
 import { getConnection } from 'typeorm';
 import { Data, Column, Relationship } from './data.dto';
+import fs from 'fs';
 
 type FormColumn = {
     nameOfColumn: string,
@@ -149,6 +151,56 @@ export class EntitygenService {
 
     async createEntityFile(data: Data): Promise<{ data: string }> { 
         return {data: ''};
+    }
+
+
+    async getEntityData(): Promise<{ entityName: string, filename: string, table: string }[]> {
+        
+        let items: { entityName: string, filename: string, table: string }[] = [];
+        let checkIfDuplicateItems: string[] = [];
+        (fs.readdirSync(`${root}/entity`)).forEach((file, i) => {
+            const table = file.split('.')[0];
+            const entityName = capitalizeFirstLetter(table);
+            const fileName = `${table}.entity.ts`;
+
+            if (checkIfDuplicateItems.indexOf(entityName) === -1) {
+                items.push({ entityName: entityName, filename: fileName, table: table });
+                checkIfDuplicateItems.push(entityName);
+            }
+        });
+
+        return items;
+    }
+
+    async deleteEntity(entityName: string): Promise<void> {
+        //const fileToDelete = entityName.split('.')[0];
+        const conn = getConnection();
+        const fileToDelete = entityName.split('.')[0];
+
+
+
+        (fs.readdirSync(`${root}/entity`)).forEach(async (file, i) => {
+
+            const table = file.split('.')[0];
+
+
+            this.logger.warn(entityName, fs.existsSync(`./src/entity/${entityName}`) + '');
+            if (table === fileToDelete) {
+
+                await fsPromises.unlink(`${root}/entity/${file}`)
+
+
+            }
+
+        });
+
+        if (fs.existsSync(`${process.cwd()}/src/entity/${entityName}`)) {
+            await fsPromises.unlink(`${process.cwd()}/src/entity/${entityName}`);
+            await conn.createQueryRunner().query(`DROP TABLE '${fileToDelete}'`)
+        }
+
+
+
     }
 
 

@@ -30,7 +30,8 @@ export default function Flex(props: {
     alignContent?: FlexPosition,
     justifyContent?: FlexPosition,
     alignItems?: FlexPosition,
-    styles?: Object | undefined
+    styles?: Object | undefined,
+    className?: string | undefined
 }) {
     return <>
         <span style={
@@ -44,7 +45,9 @@ export default function Flex(props: {
 
                 ...props.styles
             }
-        }>
+        }
+        className={props.className !== undefined ? props.className : ''}
+        >
             {props.children}
         </span>
     </>

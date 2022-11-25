@@ -4,16 +4,19 @@ import Navigation from '@/components/Navigation';
 import { JsonFetch } from '@/utils/net';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import EntityStyles from './EntityExplorer.module.scss';
 import { useNavigate } from 'react-router-dom';
+import io, {Socket} from 'socket.io-client';
 
 export default function EntityExplorer(props: any): ReturnType<React.FC> {
 
     const [entities, setEntities] = useState<{entityName: string, filename: string, table: string}[]>([]);
 
-    const [loading, setLoading] = useState<boolean>(true)
+    const [loading, setLoading] = useState<boolean>(true);
 
+    const socket = useRef<Socket>();
+    
     async function getData() {
         //setLoading(true);
         const data = await (await JsonFetch.get('entitygen')).json();
@@ -23,9 +26,26 @@ export default function EntityExplorer(props: any): ReturnType<React.FC> {
     }
 
     useEffect(() => {
-  
-        getData();
-  
+
+        socket.current = io(`http://localhost:3000/generator`);
+
+        socket.current.on("connect_error", (err: any) => {
+            console.log(`connect_error`, err);
+        });
+
+        socket.current.emit('entities');
+
+        socket.current.on('entities', (data: any) => {
+            setLoading(true);
+            setEntities(data);
+            setLoading(false);
+        })
+        //getData();
+
+        return () => {
+            socket.current.close()
+            socket.current.off('entities')
+        };
     }, []);
 
     const navigate = useNavigate();
@@ -69,8 +89,9 @@ export default function EntityExplorer(props: any): ReturnType<React.FC> {
                                 //await getData();
                                 try {
                                     //await fetch(`entitygen/entity/${item.filename}`, {method: 'DELETE'});
-                                    await JsonFetch.delete(`entitygen/entity/${item.filename}`);
-                                    await getData();
+                                    JsonFetch.delete(`entitygen/entity/${item.filename}`);//.then(async () => await getData());
+                                    //socket.current.emit('entities');
+                                    
                                 } catch (error) {
                                     console.warn('Error',error);
                                 }

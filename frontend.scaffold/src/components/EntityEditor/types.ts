@@ -15,3 +15,19 @@ export type FormState = {
         table: string
     }[]
 }
+
+export const emptyFormState = {
+    name: '',
+    originalName: '',
+    columns: [{
+        nameOfColumn: "",
+        datatype: 'varchar',
+        notNull: true,
+        unique: false,
+        index: false,
+    }],
+    relationships: [{
+        type: 'OneToOne',
+        table: ''
+    }]
+};
