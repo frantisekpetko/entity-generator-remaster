@@ -10,8 +10,8 @@ import {
 import {Index} from 'typeorm'
 
 
-@Entity({ name: 'animalx' })
-export class Animalx extends BaseEntity { 
+@Entity({ name: 'person' })
+export class Person extends BaseEntity { 
   @PrimaryGeneratedColumn()
   id: number;
   

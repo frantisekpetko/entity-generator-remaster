@@ -1,0 +1,56 @@
+[
+    {
+        "name": "animal",
+        "columns": [
+            {
+                "nameOfColumn": "name",
+                "notNull": false,
+                "unique": false,
+                "index": false,
+                "datatype": "varchar"
+            }
+        ],
+        "relationships": [
+            {
+                "type": "OneToOne",
+                "table": ""
+            }
+        ]
+    },
+    {
+        "name": "person",
+        "columns": [
+            {
+                "nameOfColumn": "name",
+                "notNull": false,
+                "unique": false,
+                "index": false,
+                "datatype": "varchar"
+            }
+        ],
+        "relationships": [
+            {
+                "type": "OneToOne",
+                "table": ""
+            }
+        ]
+    },
+    {
+        "name": "xxx",
+        "columns": [
+            {
+                "nameOfColumn": "name",
+                "notNull": false,
+                "unique": false,
+                "index": false,
+                "datatype": "varchar"
+            }
+        ],
+        "relationships": [
+            {
+                "type": "OneToOne",
+                "table": ""
+            }
+        ]
+    }
+]

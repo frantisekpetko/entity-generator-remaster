@@ -31,7 +31,7 @@ type FormState = {
 export class EntitygenService {
     private logger = new Logger(EntitygenService.name);
 
-    private isAllowedRelationshipCreating = true;
+    private isAllowedRelationshipCreating: boolean = true;
 
     async getEntityDataForView(entityName: string): Promise<{data: Data}> {
 
@@ -150,7 +150,183 @@ export class EntitygenService {
     }
 
     async createEntityFile(data: Data): Promise<{ data: string }> { 
-        return {data: ''};
+        try {
+
+            const conn = getConnection();
+
+            const model = data.name.toLowerCase();
+            const Model = capitalizeFirstLetter(data.name);
+
+            let importsArray = [];
+
+
+
+            let cols: string[] = data.columns.map((item: Column) => {
+                //const additionalProperties = `${!item.notNull ? 'nullable: true,' : ''}${item.unique ? '\nunique: true' : ''}`;
+                const additionalProperties =
+                    (!item.notNull ? '\n   nullable: true,' : '') +
+                    (item.unique ? '\n   unique: true' : '');
+
+                //const parameters = datatypes[item.datatype]() === 'number' ? datatypes[item.datatype]() : `${datatypes[item.datatype]()}`;
+                this.logger.debug(item);
+                const column = columnString(item, datatypes, additionalProperties);
+                //imports = `${item.index ? `import {Index} from "typeorm";` : ''}`;
+
+                if (!(importsArray.includes('Index')))
+                    importsArray.push('Index')
+
+                return column;
+            });
+
+            enum RelationshipType {
+                'ONE_TO_ONE' = 'OneToOne',
+                'ONE_TO_MANY' = 'OneToMany',
+                'MANY_TO_ONE' = 'ManyToOne',
+                'MANY_TO_MANY' = 'ManyToMany'
+            }
+            let relArray = [];
+
+            let entityImportsArray = [];
+
+
+
+            data.relationships.forEach(async (item: Relationship, index) => {
+                const tableName = data.relationships[index].table;
+                if (tableName !== '') {
+
+                    let rel = '';
+                    const entity = capitalizeFirstLetter(item.table);
+                    if (item.type === RelationshipType.ONE_TO_ONE) {
+                        rel = `
+  @JoinColumn()
+  @${item.type}(() => ${entity})
+  ${item.table}: ${entity};
+`;
+                        importsArray = [...importsArray, item.type, 'JoinColumn'];
+
+                        relArray.push(rel);
+
+                        entityImportsArray.push(entity);
+
+                        //  add to imports OneToOne, JoinColumn
+                    }
+
+                    if (item.type === RelationshipType.ONE_TO_MANY) {
+                        rel = `
+  @${item.type}(() => ${entity}, (${item.table}) => ${item.table}.${model})
+  ${item.table}s: ${entity}[];
+`;
+                        importsArray.push(item.type);
+                        relArray.push(rel);
+                        entityImportsArray.push(entity);
+                        if (this.isAllowedRelationshipCreating) {
+                            const data: Data = (await this.getEntityDataForView(tableName)).data;
+                            data.relationships = [...data.relationships, { table: model, type: RelationshipType.MANY_TO_ONE }];
+                            this.createEntityFile(data).then(() => this.isAllowedRelationshipCreating = false);
+
+
+                        }
+
+                        //  add to imports OneToMany
+                        //  change relationship at second entity
+                    }
+
+                    if (item.type === RelationshipType.MANY_TO_ONE) {
+                        rel = `
+  @${item.type}(() => ${entity}, (${item.table}) => ${item.table}.${model}s)
+  ${item.table}: ${entity};
+`;
+                        importsArray.push(item.type);
+                        relArray.push(rel);
+                        entityImportsArray.push(entity);
+                        if (this.isAllowedRelationshipCreating) {
+                            const data: Data = (await this.getEntityDataForView(tableName)).data;
+
+                            data.relationships = [...data.relationships, { table: model, type: RelationshipType.ONE_TO_MANY }];
+                            this.createEntityFile(data).then(() => this.isAllowedRelationshipCreating = false);
+
+                        }
+
+
+                    }
+                    //  add to imports ManyToOne
+                    //  change relationship at second entity
+
+                    if (item.type === RelationshipType.MANY_TO_MANY) {
+                        rel = `
+  @JoinTable()                        
+  @${item.type}(() => ${entity}, (${item.table}) => ${item.table}.${model}s)
+  ${item.table}s: ${entity}[];
+`;
+                        importsArray = [...importsArray, item.type, 'JoinTable'];
+                        relArray.push(rel);
+                        entityImportsArray.push(entity);
+                        if (this.isAllowedRelationshipCreating/*this.tableOrderRound < 2*/) {
+                            const data: Data = (await this.getEntityDataForView(tableName)).data;
+                            //data.relationships = [...data.relationships, { table: model, type: RelationshipType.MANY_TO_MANY }]
+                            //data.relationships[0].table === ''
+                            //? data.relationships = [{ table: model, type: RelationshipType.MANY_TO_MANY }]
+                            data.relationships = [...data.relationships, { table: model, type: RelationshipType.MANY_TO_MANY }];
+                            this.logger.warn(this.isAllowedRelationshipCreating);
+                            this.createEntityFile(data).then(() => {
+                                this.isAllowedRelationshipCreating = false
+                            });
+
+                        }
+
+                        //  add to imports JoinTable, ManyToMany 
+                        //  change relationship at second entity without JoinTable, 
+                        //      if there is another JoinTable, drop it
+                    }
+
+
+    
+                }
+
+            });
+
+
+
+            let relationships: string = relArray.join('\n');
+            //let relationships: string = '';
+
+            let imports = '';
+            if (importsArray.length > 0) imports = `import {${importsArray.join(', ')}} from 'typeorm'`;
+
+            let entityImports = '';
+
+            if (entityImportsArray.length > 0) {
+                entityImportsArray.forEach(entity => {
+                    const file = entity.toLowerCase();
+                    entityImports += `import {${entity}} from './${file}.entity';\n`
+                });
+            }
+
+
+            const content = getStringEntity(imports, model, Model, cols.join(''), relationships, entityImports);
+
+
+            this.logger.debug(content, data.name);
+   
+
+            if (data.isEditedEntity && data.originalEntityName !== '') {
+                await Promise.all([
+                    fsPromises.rename(`./src/entity/${data.originalEntityName}.entity.ts`, `./src/entity/${model}.entity.ts`),
+                    conn.createQueryRunner().query(`DROP TABLE '${data.originalEntityName}'`)
+                ]);
+
+            }
+
+            await fsPromises.writeFile(
+                `./src/entity/${model}.entity.ts`,
+                content,
+                'utf8',
+            );
+
+            return { data: content };
+        } catch (e: any) {
+            this.logger.error(e?.stack);
+        }
     }
 
 
@@ -202,6 +378,8 @@ export class EntitygenService {
 
 
     }
+
+
 
 
 }

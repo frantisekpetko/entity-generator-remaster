@@ -4,4 +4,8 @@
     form {
         margin-bottom: 1em;
     }
+
+    form:nth-of-type(even){
+        margin-bottom: 2em;
+    }
 }

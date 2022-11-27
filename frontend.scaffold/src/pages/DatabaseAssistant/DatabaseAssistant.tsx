@@ -7,6 +7,12 @@ interface Props {
 }
  
 const DatabaseAssitant: FC<Props> = () => {
+
+    async function formRequest(obj: {e: React.FormEvent<HTMLFormElement>, url: string}) {
+        obj.e.preventDefault();
+        await JsonFetch.delete(obj.url);
+    }
+
     return (  
         <>
         <Navigation />
@@ -24,16 +30,26 @@ const DatabaseAssitant: FC<Props> = () => {
             >
                 <h1>Database assistant</h1>
                 <form onSubmit={async (e) => {
-                    e.preventDefault();
-                    await JsonFetch.delete('assistant/tables');
+                    formRequest({e: e, url: 'assistant/tables'})
                 }}>
                     <Button name={'Delete all tables'} />
                 </form>
                 <form onSubmit={async (e) => {
-                    e.preventDefault();
-                    await JsonFetch.delete('assistant/data');
+                    formRequest({ e: e, url: 'assistant/data' })
                 }}>
                     <Button name={'Delete data in all tables'}/>
+                </form>
+                <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    await JsonFetch.post('assistant/schema/persist', {});
+                }}>
+                    <Button name={'Persist database schema'} />
+                </form>
+                <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    await JsonFetch.post('assistant/schema/recreate', {});
+                }}>
+                    <Button name={'Recreate database schema'} />
                 </form>
 
             </Flex>

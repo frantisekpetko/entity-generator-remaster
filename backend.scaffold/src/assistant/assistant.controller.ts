@@ -7,24 +7,14 @@ import { UpdateAssistantDto } from './dto/update-assistant.dto';
 export class AssistantController {
   constructor(private readonly assistantService: AssistantService) {}
 
-  @Post()
-  create(@Body() createAssistantDto: CreateAssistantDto) {
-    return this.assistantService.create(createAssistantDto);
+  @Post('schema/recreate')
+  recreateDatabaseSchema() {
+    return this.assistantService.recreateDatabaseSchema();
   }
 
-  @Get()
-  findAll() {
-    return this.assistantService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.assistantService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAssistantDto: UpdateAssistantDto) {
-    return this.assistantService.update(+id, updateAssistantDto);
+  @Post('schema/persist')
+  persistDatabaseSchema() {
+    return this.assistantService.persistDatabaseSchema();
   }
 
   @Delete('tables')
