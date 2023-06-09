@@ -8,13 +8,14 @@ import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import { useParams } from 'react-router-dom';
 import io, {Socket} from 'socket.io-client';
 import { Column, emptyFormState, FormState } from '@/components/EntityEditor/types';
+
 export default function EntityExplorerDetail (props: any): ReturnType<React.FC>  {
     const {entity} = useParams();
     const LOG = Logger(`[${EntityExplorerDetail.name}.tsx]`, { enabled: true })
-
+    LOG.warn('warn',entity);
     const [data, setData] = useState({});
-
-    let socket = useRef<Socket>();
+    const socket = useRef<any>();
+    //let socket = useRef(io(`http://localhost:3000/generator`));
 
     const [entities, setEntities] = useState<{ entityName: string, filename: string, table: string }[]>([]);
 
@@ -25,6 +26,7 @@ export default function EntityExplorerDetail (props: any): ReturnType<React.FC> 
     useEffect(() => {
         const entityData: FormState = emptyFormState;
         LOG.log(entity)
+        socket.current = io(`http://localhost:3000/generator`);
         /*
         (async () => {
             const data = await (await JsonFetch.get('entitygen')).json();
@@ -50,29 +52,26 @@ export default function EntityExplorerDetail (props: any): ReturnType<React.FC> 
         })();
         */
 
-        socket.current = io(`http://localhost:3000/generator`);
-
-        socket.current.on("connect_error", (err: any) => {
-            console.log(`connect_error`, err);
+        //socket.current = ;
+        
+        socket.current?.on("connect_error", (err: any) => {
+            console.error(`connect_error`, err);
         });
 
-        function getDataForView() {
-
-        }
-        socket.current.emit('view', entity)
-        socket.current.on('fireSendingDataForView', () => {
+        socket.current?.emit('view', entity)
+        socket.current?.on('fireSendingDataForView', () => {
             socket.current.emit('view', entity)
         });
 
-        socket.current.on('viewdata', (entityData: any) => {
-            //LOG.warn(entityData);
+        socket.current?.on('viewdata', (entityData: any) => {
+            LOG.warn(entityData, 'xxxx');
             setData({ ...entityData.data });
         });
 
 
-        socket.current.emit('entities');
+        socket.current?.emit('entities');
 
-        socket.current.on('entities', (data: any) => {
+        socket.current?.on('entities', (data: any) => {
             LOG.warn(data, 'entities');
             let transformedData: any[] = [];
     
@@ -97,10 +96,10 @@ export default function EntityExplorerDetail (props: any): ReturnType<React.FC> 
 
 
         return () => {
-            socket.current.close()
-            socket.current.off('view');
-            socket.current.off('fireSendingDataForView');
-            socket.current.off('entity');
+            socket?.current.close()
+            socket?.current.off('view');
+            socket?.current.off('fireSendingDataForView');
+            socket?.current.off('entity');
         };
     }, [])
 

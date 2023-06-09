@@ -1,10 +1,12 @@
-import { QueryRunner } from 'typeorm';
+#!/usr/bin / env node
 import { getConnection } from 'typeorm';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import fse from 'fs-extra';
 import { root } from './config/paths';
+
+
 import { promises as fsPromises } from 'fs';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import path from 'path';
@@ -12,8 +14,8 @@ import path from 'path';
 async function bootstrap() {
   //fse.mkdirSync(`${rootx}/entity`, { recursive: true })
   //fse.mkdirSync(`${root}/data`, { recursive: true });
-
-  const app = await NestFactory.create(AppModule);
+  
+  const app = await NestFactory.create(AppModule, { cors: true });
   //deleteTables();
   //app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
   const port = 3000;
@@ -25,8 +27,10 @@ async function bootstrap() {
   });
   app.setGlobalPrefix('/api');
   const logger = new Logger('main.ts');
-  logger.log(`${root}/${process.env.DATABASE_URL}`);
-  logger.log(process.env.DATABASE_USER);
+  logger.log(process.env.PROJECT_URL)
+  logger.debug(process.env.NODE_ENV)
+  //logger.log(`${root}/${process.env.DATABASE_URL}`);
+  //logger.log(process.env.DATABASE_USER);
   //logger.warn(await getAppPath())
   logger.warn(process.cwd())
 

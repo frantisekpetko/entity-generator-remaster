@@ -20,10 +20,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const stack = stackArr.map(s => {
             return s.split(' ').join('')
         });
+        let hoursMinSecondTime = new Date().toLocaleTimeString('cs-CZ', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+
+        });
 
         const errorResponse = {
             code: status,
-            timestamp: new Date().toLocaleDateString(),
+            timestamp: `${new Date().toLocaleDateString()}, ${hoursMinSecondTime}`,
             path: request.url,
             method: request.method,
             message:

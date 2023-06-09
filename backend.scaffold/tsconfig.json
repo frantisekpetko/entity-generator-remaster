@@ -12,7 +12,7 @@
     "incremental": true,
     "resolveJsonModule": true,
     "rootDir": "./",
-    "module": "commonjs",
+    "module": "commonJS",
     "esModuleInterop": true
 
   }

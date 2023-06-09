@@ -1,19 +1,21 @@
 import { EntitygenService } from './../entitygen/entitygen.service';
-import { root } from './../config/paths';
+import { processProjectUrl, root } from './../config/paths';
 import { promises as fsPromises } from 'fs';
 import fs from "fs";
 import { getConnection } from 'typeorm';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { CreateAssistantDto } from './dto/create-assistant.dto';
 import { UpdateAssistantDto } from './dto/update-assistant.dto';
 import path from 'path';
+import { EnvService } from '../entitygen/envService.service';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class AssistantService {
 
   private logger: Logger = new Logger(AssistantService.name);
 
-  constructor(private entitygenService: EntitygenService) { }
+    constructor(private entitygenService: EntitygenService, private envService: EnvService, private dataSource: DataSource) { }
 
   async createAllEntities(data) {
     for (const schema of data) {
@@ -22,7 +24,7 @@ export class AssistantService {
   }
 
   getSrcFiles(): Promise<string[]> {
-    return fsPromises.readdir(`${process.cwd()}/src/entity`);
+    return fsPromises.readdir(`${processProjectUrl}/src/entity`);
   }
 
   async recreateDatabaseSchema() {
@@ -30,7 +32,7 @@ export class AssistantService {
 
     await this.removeTables();
 
-    const data = await fsPromises.readFile(path.join(process.cwd(), 'src/config/databaseSchema.json'), 'utf-8');
+    const data = await fsPromises.readFile(path.join(this.envService.getProcessProjectUrl(), 'src/config/databaseSchema.json'), 'utf-8');
     const parsedData = JSON.parse(data);
 
     function timeout(ms) {
@@ -47,8 +49,6 @@ export class AssistantService {
   async persistDatabaseSchema() {
     const entities = await this.getSrcFiles();
     //this.logger.debug(JSON.stringify(entities))
-
-
     let schemaArr: any[] = [];
 
 
@@ -61,7 +61,7 @@ export class AssistantService {
 
     this.logger.warn(JSON.stringify(schemaArr), 'Final schema')
     await fsPromises.writeFile(
-      path.join(process.cwd(), 'src/config/databaseSchema.json'),
+      path.join(this.envService.getProcessProjectUrl(), 'src/config/databaseSchema.json'),
       JSON.stringify(schemaArr, null, 4),
       'utf8'
     );
@@ -70,7 +70,7 @@ export class AssistantService {
   }
 
   async removeTables() {
-    const conn = getConnection();
+    const conn = this.dataSource;
     const queryRunner = conn.createQueryRunner()
 
     // take a connection from the connection pool
@@ -108,7 +108,7 @@ export class AssistantService {
 
     async function removeSrcFiles() {
       for (const file of srcDir) {
-        await fsPromises.rm(`${process.cwd()}/src/entity/${file}`)
+        await fsPromises.rm(`${processProjectUrl}/src/entity/${file}`)
       }
     }
 
@@ -124,10 +124,10 @@ export class AssistantService {
 
 
   async removeData() {
-    const entities = getConnection().entityMetadatas;
+    const entities = this.dataSource.entityMetadatas;
 
     for (const entity of entities) {
-      const repository = getConnection().getRepository(entity.name); // Get repository
+      const repository = this.dataSource.getRepository(entity.name); // Get repository
       await repository.clear(); // Clear each entity table's content
     }
   }

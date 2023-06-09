@@ -1,6 +1,24 @@
 [
     {
-        "name": "animal",
+        "name": "dwa",
+        "columns": [
+            {
+                "nameOfColumn": "dwa",
+                "notNull": false,
+                "unique": false,
+                "index": false,
+                "datatype": "varchar"
+            }
+        ],
+        "relationships": [
+            {
+                "type": "OneToOne",
+                "table": ""
+            }
+        ]
+    },
+    {
+        "name": "project",
         "columns": [
             {
                 "nameOfColumn": "name",
@@ -18,7 +36,7 @@
         ]
     },
     {
-        "name": "person",
+        "name": "xx",
         "columns": [
             {
                 "nameOfColumn": "name",
@@ -36,10 +54,10 @@
         ]
     },
     {
-        "name": "xxx",
+        "name": "xxccq",
         "columns": [
             {
-                "nameOfColumn": "name",
+                "nameOfColumn": "xx",
                 "notNull": false,
                 "unique": false,
                 "index": false,

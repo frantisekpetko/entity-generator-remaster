@@ -10,6 +10,7 @@ import { NavLink } from "react-router-dom";
 
 export default function Navigation() {
     const navigate = useNavigate();
+
     return (
         <>
             <div className="Navigation">

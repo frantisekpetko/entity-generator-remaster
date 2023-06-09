@@ -10,16 +10,15 @@ import {
 import {Index} from 'typeorm'
 
 
-@Entity({ name: 'animal' })
-export class Animal extends BaseEntity { 
+@Entity({ name: 'dwa' })
+export class Dwa extends BaseEntity { 
   @PrimaryGeneratedColumn()
   id: number;
   
   @Column({
    type: "varchar",   
-   nullable: true,
   })
-  name!: string;
+  dwa: string;
 
   
   @CreateDateColumn()

@@ -9,34 +9,49 @@ import * as winston from 'winston';
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import { SharedModule } from './shared/shared.module';
 import { AssistantModule } from './assistant/assistant.module';
+import { SocketsModule } from './sockets/sockets.module';
+import { typeOrmConfig } from './config/typeorm.config';
+
+
+
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      envFilePath: '.env',
-      isGlobal: true,
-    }),
-    TypeOrmModule.forRoot(),
-    EntitygenModule,
-    WinstonModule.forRoot({
-      transports: [
-        new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.ms(),
-            nestWinstonModuleUtilities.format.nestLike('MyApp', {
-              // options
-            }),
-          ),
+    imports: [
+        ConfigModule.forRoot({
+            envFilePath: `${process.cwd()}/.env`,
+            isGlobal: true,
         }),
-        new winston.transports.File({ filename: './errors.log' })
-        // other transports...
-      ],
-    }),
-    SharedModule,
-    AssistantModule
-  ],
-  controllers: [AppController],
-  providers: [AppService],
+        TypeOrmModule.forRoot({
+            type: "sqlite",
+            database: process.env.NODE_ENV === 'development' ? `../${process.env.PROJECT_URL}${process.env.DATABASE_URL}` : `../${process.env.PROJECT_URL}${process.env.DATABASE_URL}`,
+            logging: true,
+            autoLoadEntities: true,
+            synchronize: true,
+            //entities: ["src/entity/**/*.ts"],
+            entities: ["dist/**/*.entity.js"],
+            migrations: ["src/migration/**/*.ts"],
+            subscribers: ["src/subscriber/**/*.ts"]
+        }),
+        EntitygenModule,
+        WinstonModule.forRoot({
+            transports: [
+                new winston.transports.Console({
+                    format: winston.format.combine(
+                        winston.format.timestamp(),
+                        winston.format.ms(),
+                        nestWinstonModuleUtilities.format.nestLike('MyApp', {
+                            // options
+                        }),
+                    ),
+                }),
+                new winston.transports.File({ filename: './errors.log' })
+                // other transports...
+            ],
+        }),
+        SharedModule,
+        AssistantModule
+    ],
+    controllers: [AppController],
+    providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

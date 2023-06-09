@@ -15,7 +15,7 @@ export default function EntityExplorer(props: any): ReturnType<React.FC> {
 
     const [loading, setLoading] = useState<boolean>(true);
 
-    const socket = useRef<Socket>();
+    const socket = useRef<any>();
     
     async function getData() {
         //setLoading(true);
@@ -33,9 +33,29 @@ export default function EntityExplorer(props: any): ReturnType<React.FC> {
             console.log(`connect_error`, err);
         });
 
+        socket.current.on('error', function (err: any) {
+            if (typeof console !== "undefined" && console !== null) {
+                console.log("Socket.io reported a generic error");
+            }
+            console.warn({err});
+            
+        });
+        socket.current.on('update', (data: any) => console.log(data))
+
+        socket.current.on('connect_error', (err: any) => console.log(err))
+        socket.current.on('connect_failed', (err: any) => console.log(err))
+        socket.current.on('disconnect', (err: any) => console.log(err))
+
         socket.current.emit('entities');
 
+        socket.current.on('delete', (data: any) => {
+            setLoading(true);
+            setEntities(data);
+            setLoading(false);
+        })
+
         socket.current.on('entities', (data: any) => {
+            console.log('entities', data)
             setLoading(true);
             setEntities(data);
             setLoading(false);
@@ -45,6 +65,7 @@ export default function EntityExplorer(props: any): ReturnType<React.FC> {
         return () => {
             socket.current.close()
             socket.current.off('entities')
+            socket.current.off('delete')
         };
     }, []);
 
@@ -84,12 +105,13 @@ export default function EntityExplorer(props: any): ReturnType<React.FC> {
                                 //const x = await JsonFetch.delete(`entitygen/entity/${item.filename}`);
                                 //console.log({x})
                                 setLoading(true);
+                                socket.current.emit('delete', item.filename);
                                 //JsonFetch.delete(`entitygen/entity/${item.filename}`).then(async () => await getData()).catch((e) => console.log(e));
                                 //setTimeout(async () => await getData(), 1500)
                                 //await getData();
                                 try {
                                     //await fetch(`entitygen/entity/${item.filename}`, {method: 'DELETE'});
-                                    JsonFetch.delete(`entitygen/entity/${item.filename}`);//.then(async () => await getData());
+                                    //JsonFetch.delete(`entitygen/entity/${item.filename}`);//.then(async () => await getData());
                                     //socket.current.emit('entities');
                                     
                                 } catch (error) {

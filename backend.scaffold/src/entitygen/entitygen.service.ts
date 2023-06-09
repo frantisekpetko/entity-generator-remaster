@@ -1,12 +1,14 @@
-import { root } from './../config/paths';
-import { Injectable, Logger } from '@nestjs/common';
+import { EnvService } from './envService.service';
+//import { root, processProjectUrl } from './../config/paths';
+import { Injectable, Logger, Inject, OnModuleInit } from '@nestjs/common';
 import { datatypes, getStringEntity, columnString, getFromBetween } from './stringmaterials';
 import { capitalizeFirstLetter, getObjectBetweenParentheses } from 'src/utils/string.functions';
-import { promises as fsPromises } from 'fs';
-import { QueryRunner } from "typeorm";
-import { getConnection } from 'typeorm';
+//import { getConnection } from 'typeorm';
 import { Data, Column, Relationship } from './data.dto';
+import {promises as fsPromises} from 'fs';
 import fs from 'fs';
+import { DataSource } from 'typeorm';
+
 
 type FormColumn = {
     nameOfColumn: string,
@@ -28,12 +30,24 @@ type FormState = {
 }
 
 @Injectable()
-export class EntitygenService {
+export class EntitygenService implements OnModuleInit {
     private logger = new Logger(EntitygenService.name);
+    //private projectUrl = this.envService.getProcessProjectUrl();
+    //private rootUrl = this.envService.getRootUrl();
+    
+
+    constructor(private envService: EnvService, private dataSource: DataSource) {}
+
+    onModuleInit() {
+        //this.logger.log(this.envService.getProcessProjectUrl(), 'log')
+    }
 
     private isAllowedRelationshipCreating: boolean = true;
 
     async getEntityDataForView(entityName: string): Promise<{data: Data}> {
+        const projectUrl = this.envService.getProcessProjectUrl();
+        //const rootUrl = this.envService.getRootUrl();
+
 
         enum RelationshipType {
             'ONE_TO_ONE' = 'OneToOne',
@@ -48,7 +62,7 @@ export class EntitygenService {
             relationships: []
         };
 
-        const txt = await fsPromises.readFile(`./src/entity/${entityName}.entity.ts`, 'utf8');
+        const txt = await fsPromises.readFile(`${projectUrl}/src/entity/${entityName}.entity.ts`, 'utf8');
         const txtWithoutWhiteSpace = txt.replace(/ /g, '').replace(/\n/g, '');
         this.logger.log(txtWithoutWhiteSpace, 'txt');
         const txtArray = txtWithoutWhiteSpace.split(';').map(item => item + ';')
@@ -71,7 +85,7 @@ export class EntitygenService {
 
 
         const columnData = getFromBetween.get(txtWithoutWhiteSpace, "@Column({", "})");
-        const parsedColumnData = JSON.parse(JSON.stringify(columnData));
+        //const parsedColumnData = JSON.parse(JSON.stringify(columnData));
 
         let columns: FormColumn[] = [];
         let relationships:FormRelationship[] = [];
@@ -150,9 +164,12 @@ export class EntitygenService {
     }
 
     async createEntityFile(data: Data): Promise<{ data: string }> { 
+        const projectUrl = this.envService.getProcessProjectUrl();
+        const conn = this.dataSource.createQueryRunner();
         try {
 
-            const conn = getConnection();
+            //const conn = getConnection();
+     
 
             const model = data.name.toLowerCase();
             const Model = capitalizeFirstLetter(data.name);
@@ -280,7 +297,7 @@ export class EntitygenService {
                     }
 
 
-    
+
                 }
 
             });
@@ -307,18 +324,18 @@ export class EntitygenService {
 
 
             this.logger.debug(content, data.name);
-   
+
 
             if (data.isEditedEntity && data.originalEntityName !== '') {
                 await Promise.all([
-                    fsPromises.rename(`./src/entity/${data.originalEntityName}.entity.ts`, `./src/entity/${model}.entity.ts`),
-                    conn.createQueryRunner().query(`DROP TABLE '${data.originalEntityName}'`)
+                    fsPromises.rename(`${projectUrl}/src/entity/${data.originalEntityName}.entity.ts`, `./src/entity/${model}.entity.ts`),
+                    conn.query(`DROP TABLE '${data.originalEntityName}'`)
                 ]);
 
             }
 
             await fsPromises.writeFile(
-                `./src/entity/${model}.entity.ts`,
+                `${projectUrl}/src/entity/${model}.entity.ts`,
                 content,
                 'utf8',
             );
@@ -327,52 +344,104 @@ export class EntitygenService {
         } catch (e: any) {
             this.logger.error(e?.stack);
         }
+        finally {
+            await conn.release();
+        }
     }
 
 
     async getEntityData(): Promise<{ entityName: string, filename: string, table: string }[]> {
-        
+        const projectUrl = this.envService.getProcessProjectUrl();
+        const rootUrl = this.envService.getRootUrl();
+
+
         let items: { entityName: string, filename: string, table: string }[] = [];
         let checkIfDuplicateItems: string[] = [];
-        (fs.readdirSync(`${root}/entity`)).forEach((file, i) => {
-            const table = file.split('.')[0];
-            const entityName = capitalizeFirstLetter(table);
-            const fileName = `${table}.entity.ts`;
 
-            if (checkIfDuplicateItems.indexOf(entityName) === -1) {
-                items.push({ entityName: entityName, filename: fileName, table: table });
-                checkIfDuplicateItems.push(entityName);
+        this.logger.warn('if exists rooturl with entities ' + fs.existsSync(`${rootUrl}/entity`));
+        
+        if (fs.existsSync(`${rootUrl}/entity`)) {
+
+            const distEntityFiles: string[] = fs.readdirSync(`${rootUrl}/entity`);
+
+            distEntityFiles.forEach((file, i) => {
+                const table = file.split('.')[0];
+                const entityName = capitalizeFirstLetter(table);
+                const fileName = `${table}.entity.ts`;
+
+                if (checkIfDuplicateItems.indexOf(entityName) === -1) {
+                    items.push({ entityName: entityName, filename: fileName, table: table });
+                    checkIfDuplicateItems.push(entityName);
+                }
+            });
+        }
+        else {
+            
+            const srcEntityFiles: string[] = fs.readdirSync(`${projectUrl}/src/entity`);
+
+            if (srcEntityFiles.length > 0) {
+                srcEntityFiles.forEach((file, i) => {
+                    const table = file.split('.')[0];
+                    const entityName = capitalizeFirstLetter(table);
+                    const fileName = `${table}.entity.ts`;
+
+                    if (checkIfDuplicateItems.indexOf(entityName) === -1) {
+                        items.push({ entityName: entityName, filename: fileName, table: table });
+                        checkIfDuplicateItems.push(entityName);
+                    }
+                });
             }
-        });
+        }
+
 
         return items;
     }
 
     async deleteEntity(entityName: string): Promise<void> {
         //const fileToDelete = entityName.split('.')[0];
-        const conn = getConnection();
-        const fileToDelete = entityName.split('.')[0];
+        const projectUrl = this.envService.getProcessProjectUrl();
+        const rootUrl = this.envService.getRootUrl();
+        const conn = this.dataSource.createQueryRunner();
+        try {
+            const fileToDelete = entityName.split('.')[0];
+
+            if (fs.existsSync(rootUrl)) {
+                const distEntityFiles: string[] = fs.readdirSync(`${rootUrl}/entity`);
+
+                if (distEntityFiles.length > 0) {
+                    distEntityFiles.forEach(async (file, i) => {
+
+                        const table = file.split('.')[0];
 
 
+                        this.logger.warn(entityName, fs.existsSync(`${projectUrl}/src/entity/${entityName}`) + '');
+                        if (table === fileToDelete) {
 
-        (fs.readdirSync(`${root}/entity`)).forEach(async (file, i) => {
-
-            const table = file.split('.')[0];
-
-
-            this.logger.warn(entityName, fs.existsSync(`./src/entity/${entityName}`) + '');
-            if (table === fileToDelete) {
-
-                await fsPromises.unlink(`${root}/entity/${file}`)
+                            await fsPromises.unlink(`${rootUrl}/entity/${file}`)
 
 
+                        }
+
+                    });
+                }
             }
 
-        });
 
-        if (fs.existsSync(`${process.cwd()}/src/entity/${entityName}`)) {
-            await fsPromises.unlink(`${process.cwd()}/src/entity/${entityName}`);
-            await conn.createQueryRunner().query(`DROP TABLE '${fileToDelete}'`)
+            if (fs.existsSync(`${projectUrl}/src/entity/${entityName}`)) {
+                await fsPromises.unlink(`${projectUrl}/src/entity/${entityName}`);
+                await conn.query(`DROP TABLE '${fileToDelete}'`)
+            }
+
+
+            //const data = await this.getEntityData();
+            //this.gateway.wss.emit('entities', data);
+            //this.entitygenGateway.wss.emit('entities', data);
+        }
+        catch (e: any) {
+            this.logger.error(e?.stack);
+        }
+        finally {
+            await conn.release();
         }
 
 
