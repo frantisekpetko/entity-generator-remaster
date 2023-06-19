@@ -1,13 +1,12 @@
 import {EntityEditor} from '@/components';
-import Flex from '@/components/Flex';
-import Footer from '@/components/Footer/Footer';
-import Navigation from '@/components/Navigation';
+import { Flex, Footer, Navigation } from '@/components';
 import { Logger } from '@/utils/logger';
 import { JsonFetch } from '@/utils/net';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import { useParams } from 'react-router-dom';
 import io, {Socket} from 'socket.io-client';
 import { Column, emptyFormState, FormState } from '@/components/EntityEditor/types';
+import { toast } from 'react-toastify';
 
 export default function EntityExplorerDetail (props: any): ReturnType<React.FC>  {
     const {entity} = useParams();
@@ -27,6 +26,25 @@ export default function EntityExplorerDetail (props: any): ReturnType<React.FC> 
         const entityData: FormState = emptyFormState;
         LOG.log(entity)
         socket.current = io(`http://localhost:3000/generator`);
+
+        socket.current.on('error', function (err: any) {
+
+            if (Object.hasOwn(err, 'data') && Object.hasOwn(err.data, 'message')) {
+                toast.error(`${err.data.message}`, {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: "colored",
+                    icon: true
+                });
+            }
+
+            console.warn('err', { err });
+        });
+
         /*
         (async () => {
             const data = await (await JsonFetch.get('entitygen')).json();
@@ -58,10 +76,13 @@ export default function EntityExplorerDetail (props: any): ReturnType<React.FC> 
             console.error(`connect_error`, err);
         });
 
-        socket.current?.emit('view', entity)
+
         socket.current?.on('fireSendingDataForView', () => {
+            LOG.log({entity}, 'check')
             socket.current.emit('view', entity)
         });
+
+        socket.current?.emit('view', entity)
 
         socket.current?.on('viewdata', (entityData: any) => {
             LOG.warn(entityData, 'xxxx');
@@ -100,8 +121,13 @@ export default function EntityExplorerDetail (props: any): ReturnType<React.FC> 
             socket?.current.off('view');
             socket?.current.off('fireSendingDataForView');
             socket?.current.off('entity');
+            socket.current.off('error');
         };
     }, [])
+
+    useEffect(() => {
+        LOG.log('check', entity)
+    }, [entity])
 
     return <>
         <Navigation/>

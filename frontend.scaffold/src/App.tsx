@@ -1,10 +1,9 @@
-import React, {useState} from 'react'
+import {useState} from 'react'
 import {Logger} from "./utils/logger";
 import Main from "./pages/Main";
 import {
   createBrowserRouter,
-  RouterProvider,
-  Route,
+  RouterProvider
 } from "react-router-dom";
 import Welcome from "./pages/Welcome";
 import EntityGenerator from "@/pages/EntityGenerator";
@@ -15,8 +14,6 @@ import NotFound from '@/pages/NotFound';
 import ErrorBoundary from './components/ErrorBoundary';
 import Context from './context/Context';
 
-
-
 function App() {
 
   const LOG = Logger(`[${App.name}.tsx]`, {enabled: true})
@@ -26,10 +23,7 @@ function App() {
   const router = createBrowserRouter([
     {
       path: "/",
-      element: 
-
-      <Main />
-     
+      element: <Main />
     },
     {
       path: "/entity",

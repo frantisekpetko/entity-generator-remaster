@@ -1,10 +1,10 @@
 
 @use '../node_modules/sass-mq/mq' as * with (
     $breakpoints: (
-    mobile: 320px,
-    tablet: 740px,
-    desktop: 980px,
-    wide: 1300px,
+        mobile: 320px,
+        tablet: 740px,
+        desktop: 980px,
+        wide: 1300px,
     ) 
 );
 

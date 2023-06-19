@@ -28,7 +28,7 @@ import { typeOrmConfig } from './config/typeorm.config';
             autoLoadEntities: true,
             synchronize: true,
             //entities: ["src/entity/**/*.ts"],
-            entities: ["dist/**/*.entity.js"],
+            entities: [`../${process.env.PROJECT_URL}/dist/**/*.entity.js`],
             migrations: ["src/migration/**/*.ts"],
             subscribers: ["src/subscriber/**/*.ts"]
         }),

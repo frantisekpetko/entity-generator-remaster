@@ -8,11 +8,11 @@ import { WebsocketExceptionsFilter } from './websocket-exception.filter';
         {
             provide: APP_FILTER,
             useClass: HttpExceptionFilter,
-        },
+        }/*,
         {
             provide: APP_FILTER,
             useClass: WebsocketExceptionsFilter,
-        }
+        }*/
     ]
 })
 export class SharedModule { }

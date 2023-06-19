@@ -17,7 +17,7 @@
     box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.2);
 }
 
-.Button {
+.CardButton {
 
   background-color: rgba(218,165,32, 0.3);
   border: none;
@@ -32,7 +32,7 @@
   transition: background-color 1s linear;
 }
 
-.Button:hover {
+.CardButton:hover {
   background-color: rgba(218,165,32, 0.9);
 
 }

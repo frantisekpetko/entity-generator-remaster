@@ -4,8 +4,6 @@ $glass-icon: darken(darkgoldenrod, 0.5);
 $gradient: white;
 $option: darkgoldenrod;
 
-
-
 /* <select> styles */
 .Select {
     /* Reset */
@@ -38,12 +36,12 @@ $option: darkgoldenrod;
     &:hover > option:hover {
         background: goldenrod !important;
     }
-
+    /*
     & option:checked,
     & option:hover {
         //background-color: goldenrod !important;
     }
-
+    */
     &:hover {
         background-color: goldenrod !important;
     }

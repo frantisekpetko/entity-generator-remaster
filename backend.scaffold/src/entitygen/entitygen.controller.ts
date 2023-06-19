@@ -124,4 +124,10 @@ export class EntitygenController {
         return this.entityGenService.createEntityFile(data);
         
     }
+
+    @Post('/finish')
+    async finishGeneratingEntityFile(@Body() data: Data): Promise<void> {
+        return this.entityGenService.finishGeneratingEntityFile();
+
+    }
 }

@@ -1,6 +1,5 @@
 import type {CardInfo} from "@/components";
 import "./CardStyles.scss";
-import Flex from "../Flex";
 import {useNavigate} from "react-router-dom";
 import { faChevronRight, faCircleChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -21,7 +20,7 @@ export default function Card(props: {item: CardInfo}) {
 
                         <div className={'ButtonContainer'}>
                             <button
-                                className={'Button'}
+                                className={'CardButton'}
                                 onClick={() => navigate(path)}
                             >
                                 {"Begin".toUpperCase()} <FontAwesomeIcon icon={faChevronRight} size="sm" />

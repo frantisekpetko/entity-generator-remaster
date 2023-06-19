@@ -1,12 +1,6 @@
-import React from "react";
 import Star from "../../assets/starful.png";
-import LazyImage from "@/components/LazyImage";
+import { LazyImage, Flex, Navigation, Footer } from "@/components";
 import packageJSON from '../../../package.json';
-import Flex from "@/components/Flex";
-import Navigation from "../../components/Navigation";
-import Footer from "../../components/Footer/Footer";
-
-
 
 export default function Welcome() {
     return (

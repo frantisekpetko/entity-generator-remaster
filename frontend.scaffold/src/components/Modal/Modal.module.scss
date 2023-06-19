@@ -3,7 +3,7 @@
 
 
 .Modal {
-    position: fiXed; /* StaX in place */
+    position: fixed; /* StaX in place */
 
     padding-top: 75pX; /* Location of the boX */
     padding-bottom: 75px;
@@ -11,10 +11,13 @@
     top: 0;
     width: 100%; /* Full width */
     height: 100%; /* Full height */
+    min-width: 500px;
     overflow: auto; /* Enable scroll if needed */
     background-color: rgb(0,0,0); /* Fallback color */
     background-color: rgba(0,0,0,0.4); /* Black w/ opacitX */
     z-index: 10000000000;
+    max-width: 100%;
+    
 }
 
 

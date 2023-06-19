@@ -1,4 +1,4 @@
-import { Navigation, Flex, Button, Footer} from '@/components';
+import { Navigation, Flex, Footer} from '@/components';
 import { JsonFetch } from '@/utils/net';
 import {FC} from 'react'
 import NotFoundStyles from "./DatabaseAssistant.module.scss";

@@ -1,7 +1,7 @@
 import React from 'react';
 import SelectStyles from './Select.module.scss'
-import Flex from "./Flex";
-import { adjustColor } from '../utils/colors';
+import { Flex } from "@/components";
+import { adjustColor } from '../../utils/colors';
 
 export default function Select(
     props: {
@@ -40,9 +40,6 @@ export default function Select(
                     
                 ))
                 }
-    
-     
-
         </select>
     </Flex>)
 }

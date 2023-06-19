@@ -6,7 +6,9 @@ import { Socket, Server } from 'socket.io';
 import { promises as fsPromises } from 'fs';
 import fs from 'fs';
 import { WebsocketExceptionsFilter } from '../shared/websocket-exception.filter';
-
+import { cli } from 'winston/lib/winston/config';
+import chokidar from 'chokidar';
+import { PathsService } from './paths/paths.service';
 
 @WebSocketGateway({ namespace: '/generator', cors: true })
 @UseFilters(new WebsocketExceptionsFilter)
@@ -16,21 +18,44 @@ export class EntitygenGateway implements OnGatewayInit, OnGatewayConnection, OnM
     private logger: Logger = new Logger(EntitygenGateway.name);
     @WebSocketServer() wss: Server;
 
-    constructor(private entityGenService: EntitygenService) { }
+    timer: NodeJS.Timeout | string | number | undefined = null;
+
+    constructor(private entityGenService: EntitygenService, private pathsService: PathsService) { }
 
     async onModuleInit() {
-        this.wss.emit('fireSendingDataForView');
+        //this.wss.emit('fireSendingDataForView');
+        this.logger.log(`${this.pathsService.getProcessProjectUrl()}/src/entity`);
+        /*
+        const watcher = chokidar.watch(`${this.pathsService.getProcessProjectUrl()}/src/entity`, {
+            ignored: /(^|[\/\\])\../, // ignore dotfiles
+            persistent: true
+        });
 
-
-
+        watcher
+            .on('add', async (path) => {
+                this.sendDataWhenFilesHaveChanged();
+                this.logger.log('watcher')
+            })
+            .on('change', async (path) => {
+                this.sendDataWhenFilesHaveChanged();
+                this.logger.log('watcher')
+            })
+            .on('unlink', async (path) => {
+                this.sendDataWhenFilesHaveChanged();
+                this.logger.log('watcher')
+            })
+            .on('error', error => this.logger.error(`Watcher error: ${error}`));
+        */
         try {
-            const data = await this.entityGenService.getEntityData();
-            this.logger.warn(JSON.stringify(data, null, 4), 'entities');
-            this.wss.emit('entities', data)
-            setTimeout(() => this.wss.emit('entities', data), 750);
+            //const data = await this.entityGenService.getEntityData();
+            //this.logger.warn(JSON.stringify(data, null, 4), 'entities');
+
+            //this.wss.emit('entities', data)
+            //setTimeout(() => this.wss.emit('entities', data), 750);
             //this.wss.emit('entities', data)
         } catch (error) {
             this.logger.error(error);
+
             /*
             throw new HttpException({
                 status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -60,7 +85,38 @@ export class EntitygenGateway implements OnGatewayInit, OnGatewayConnection, OnM
     }
 
     async afterInit(server: Server) {
+        const watcher = chokidar.watch(`${this.pathsService.getProcessProjectUrl()}/src/entity`, {
+            ignored: /(^|[\/\\])\../, // ignore dotfiles
+            persistent: true
+        });
 
+        watcher
+            .on('add', async (path) => {
+                this.sendDataWhenFilesHaveChanged();
+                this.logger.log('watcher')
+            })
+            .on('change', async (path) => {
+                this.sendDataWhenFilesHaveChanged();
+                this.logger.log('watcher')
+            })
+            .on('unlink', async (path) => {
+                this.sendDataWhenFilesHaveChanged();
+                this.logger.log('watcher')
+            })
+            .on('error', error => {
+                this.logger.error(`Watcher error: ${error}`)
+   
+                server.emit('error', {
+                    event: "error",
+                    data: {
+                        id: (server as any).id,
+                        //rid: data.rid,
+                        ...(error instanceof Object ? { ...error } : { message: error })
+                    }
+                });
+
+
+            });
     }
 
     async handleConnection(client: Socket, ...args: any[]) {
@@ -79,14 +135,45 @@ export class EntitygenGateway implements OnGatewayInit, OnGatewayConnection, OnM
         */
     }
 
+    async sendDataWhenFilesHaveChanged() {
+        //debounce
+        this.logger.log('sendDataWhenFilesHaveChanged')
+        clearTimeout(this.timer);
+        this.timer = setTimeout(async () => {
+            try {
+                const data = await this.entityGenService.getEntityData();
+                this.wss.emit('entities', data);
+                //throw new Error('some error')
+                //this.wss.emit('fireSendingDataForView');
+                this.logger.log('Sended')
+            }
+            catch (error) {
+                this.logger.error(error);
+                //throw new WsException(e);
+                this.wss.emit('error', {
+                    event: "error",
+                    data: {
+                        id: (this.wss as any).id,
+                        //rid: data.rid,
+                        ...(error instanceof Object ? { ...error } : { message: error })
+                    }
+                });
+            }
+        }, 1000);
+
+    }
+
     @SubscribeMessage('entities')
-    async handleEntitiesMessage(client: any) {
-    
+    async handleEntitiesMessage(client: Socket) {
+
         const data = await this.entityGenService.getEntityData();
         this.logger.log('entities', JSON.stringify(data, null, 4))
-        throw new WsException('xxxxxxxxxx')
+
+        //throw new WsException('some error')
+        //client.emit('entities', data);
+        //client.send(JSON.stringify(data))
+
         this.wss.emit('entities', data);
-      
     }
 
 

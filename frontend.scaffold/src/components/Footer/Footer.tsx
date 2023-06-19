@@ -1,5 +1,5 @@
 
-import Flex from "../Flex";
+import { Flex } from "@/components";
 import React from 'react';
 import './FooterStyles.scss';
 

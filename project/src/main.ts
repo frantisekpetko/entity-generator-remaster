@@ -16,7 +16,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   //deleteTables();
   //app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
-  const port = 4000;
+  const port = 5000;
 
   app.enableCors({
     origin: true,
@@ -24,6 +24,9 @@ async function bootstrap() {
     credentials: true,
   });
   app.setGlobalPrefix('/api');
+
+
+  
   const logger = new Logger('main.ts');
   logger.log(`${root}/${process.env.DATABASE_URL}`);
   logger.log(process.env.DATABASE_USER);

@@ -1,4 +1,4 @@
-import { EnvService } from './../entitygen/envService.service';
+import { PathsService } from './../entitygen/paths/paths.service';
 import { SocketsGateway } from './../sockets/sockets.gateway';
 import { EntitygenService } from './../entitygen/entitygen.service';
 import { Module, forwardRef } from '@nestjs/common';
@@ -7,6 +7,6 @@ import { AssistantController } from './assistant.controller';
 
 @Module({
   controllers: [AssistantController],
-  providers: [AssistantService, EntitygenService, EnvService]
+  providers: [AssistantService, EntitygenService, PathsService]
 })
 export class AssistantModule {}

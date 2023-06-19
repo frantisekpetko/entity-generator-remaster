@@ -75,8 +75,7 @@ export const columnString = (
   @Column(${datatypes[item.datatype](additionalProperties).column})
   ${item.nameOfColumn}${!item.notNull ? '!' : ''}: ${
     datatypes[item.datatype](additionalProperties).type
-  };
-`;
+  };`;
 
 export function getStringEntity(
   imports: string,

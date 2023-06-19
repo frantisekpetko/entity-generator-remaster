@@ -1,19 +1,23 @@
 import React, { useEffect, useState, useRef } from 'react';
 
-import Input from "../../components/Input";
-
 import {  
     Button,
     Flex,
     Select,
     Checkbox,
-    Modal } 
+    Modal,
+    Input
+} 
 from "@/components";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { JsonFetch } from '@/utils/net';
-import {Column, emptyFormState, FormState} from './types';
+import { emptyFormState, FormState } from './types';
 import EntityEditorStyles from "./EntityEditorStyles.module.scss";
+import { ButtonType } from '../Button/Button';
+import { flushSync } from 'react-dom';
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
 
 export default function EntityEditor(props: { data: any, isEditedEntity: boolean, heading: string, entities: { entityName: string, filename: string, table: string }[] }): ReturnType<React.FC>{
 
@@ -21,20 +25,25 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
 
 
     const [formState, setFormState] = useState<FormState>(emptyFormState);
+    const [isValidEntityObject, setIsValidEntityObject] =  useState<boolean>();
 
     useEffect(() => {
-        originalEntityName.current = formState.name;
+
 
     }, [])
 
     useEffect(() => {
         console.log('Props', Object.keys(props.data).length)
         Object.keys(props.data).length > 0 ? setFormState({...props.data}) : null;
+
+        originalEntityName.current = props.data.name;
+        console.log(`originalEntityName.current: ${originalEntityName.current} formState.name: ${props.data.name}`);
+        console.warn('xxxx', props.data);
     }, [props.data])
 
     const [open, setOpen] = useState<boolean>(false);
 
-    function modalOpenHandler() {
+    function modalOpenSwitcherHandler() {
         setOpen((prevState) => !prevState);
     }
 
@@ -63,7 +72,24 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
     const [entityModelTxt, setEntityModelTxt] = useState<string>('');
 
 
+    function checkIfFormIsValid(){
+        const isValidColumns = formState.columns.every(item => {
+            return !!item.nameOfColumn;
+        })
 
+        const isValidRelationships = formState.relationships.slice(1, formState.relationships.length).every(item => {
+            return !!item.table;
+        })
+
+        const isValidSchema = !!formState.name && isValidColumns && isValidRelationships;
+        console.warn({ isValidSchema })
+        flushSync(() => {
+            setIsValidEntityObject(isValidSchema);
+        })
+
+        return isValidSchema;
+
+    }
 
     useEffect(() => {
         console.table(formState.columns)
@@ -106,7 +132,7 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
 
 
         }))
-
+        checkIfFormIsValid()
     };
 
 
@@ -142,6 +168,7 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
             let { relationships }: any = formState;
 
             relationships[columnx][name] = event.target.value;
+            //console.warn('event.target.value', event.target.value)
             //console.warn(name, relationships[columnx][name], relationships[columnx], event.target.value);
             setFormState((prevState) => ({
                 ...prevState,
@@ -152,8 +179,9 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
         }
 
         let { relationships }: any = formState;
-        console.log(relationships)
+        console.log({relationships})
         relationships[columnx][name] = event.target.value;
+        console.warn('event.target.valuexx', event.target.value)
         //console.warn(name, relationships[columnx][name], relationships[columnx], event.target.value);
         setFormState((prevState) => ({
             ...prevState,
@@ -161,8 +189,8 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
 
 
         }))
-
-        console.warn('rel', formState.relationships, columnx)
+        checkIfFormIsValid()
+        console.warn('rel', formState.relationships)
 
 
 
@@ -218,7 +246,7 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
             ...prevState,
             relationships: [...prevState.relationships, {
                 type: 'OneToOne',
-                table: 'Person'
+                table: ''
             }],
 
 
@@ -261,6 +289,7 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
                 onChange={handleChange('name', 0)}
             />
             <form onSubmit={async (e) => {
+                /*
                 e.preventDefault();
 
                 let txt: { data: string } = await (
@@ -277,6 +306,7 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
                 setOpen(true);
                 originalEntityName.current = formState.name;
                 console.log('txt', txt.data)
+                */
             }
             }>
 
@@ -342,7 +372,7 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
 
                     </Flex>
                 ))}
-                <Flex direction={'column'} alignItems={'center'} width={'100%'} styles={{ marginTop: '2em', lineHeight: '2.5em' }}>
+                <Flex direction={'column'} alignItems={'center'} width={'100%'} styles={{ marginTop: '1em', lineHeight: '2.5em' }}>
                     <button className={EntityEditorStyles.Buttonx} onClick={(e) => addColumnHandler(e)}
                         style={{ borderRadius: '100%', lineHeight: '0em', width: '1.2em', height: '1.2em', fontSize: '1em', border: 'none', background: 'goldenrod', color: 'white' }}
                     ><FontAwesomeIcon icon={faPlus} size="2xs" />
@@ -361,7 +391,7 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
                         alignContent="center"
 
                         key={index}
-                        styles={{ margin: '1em auto', gap: '1em', lineHeight: '2em', width: '60%' }}
+                        styles={{ margin: '0.5em auto', gap: '1em', lineHeight: '2em', width: '60%' }}
                     >
 
 
@@ -397,7 +427,8 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
 
                             }
                             label={'Relationship type'}
-                            themeColor='#DC582A'
+                            //themeColor='#DC582A'
+                            themeColor='#947119'
                         />
 
                         <Select
@@ -408,47 +439,36 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
                                 ? [{
                                         label: 'No Selected Entity', value:
                                         {
-                                            name: 'null'
+                                            name: ''
                                         }
                                 }, ...props.entities] 
                                 : [{
                                     label: 'No data', value:
                                     {
-                                        name: 'null'
+                                        name: ''
                                     }
                                 }]
                             }
                             label={"Entity name "}
-                            themeColor='#DC582A'
+                            //themeColor='#DC582A'
+                            themeColor='#947119'
                             styles={{ marginRight: '1em' }}
 
                         />
 
-
-
-
-
-
-
-
-
                         <Flex direction={'row'} width={'100%'} styles={{ marginTop: '2em', lineHeight: '3em' }}>
                             <button className={EntityEditorStyles.Buttonx}
-                                style={{ borderRadius: '100%', lineHeight: '0em', width: '1.2em', height: '1.2em', fontSize: '1.5em', border: 'none', background: '#DC582A', color: 'white' }}
+                                style={{ borderRadius: '100%', lineHeight: '0em', width: '1.2em', height: '1.2em', fontSize: '1.5em', border: 'none', background: '#947119', /*background: '#DC582A',*/ color: 'white' }}
                                 onClick={(e) => dropRelationshipHandler(e, index)}
 
                             ><FontAwesomeIcon icon={faMinus} size="2xs" /></button>
                         </Flex>
-
-
-
-
                     </Flex>
                 ))}
 
-                <Flex direction={'column'} alignItems={'center'} width={'100%'} styles={{ marginTop: '2em', lineHeight: '2.5em' }}>
+                <Flex direction={'column'} alignItems={'center'} width={'100%'} styles={{ marginTop: '1em', lineHeight: '2.5em' }}>
                     <button className={EntityEditorStyles.Buttonx} onClick={(e) => addRelationshipHandler(e)}
-                        style={{ borderRadius: '100%', lineHeight: '0em', width: '1.2em', height: '1.2em', fontSize: '1.5em', border: 'none', background: '#DC582A', color: 'white' }}
+                        style={{ borderRadius: '100%', lineHeight: '0em', width: '1.2em', height: '1.2em', fontSize: '1.5em', border: 'none', background: '#947119', color: 'white' }}
                     >  <FontAwesomeIcon icon={faPlus} size="2xs" />
 
                     </button>
@@ -456,12 +476,67 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
 
 
                 <Flex direction={'column'} alignItems={'center'} width={'100%'} styles={{ marginTop: '1em', lineHeight: '2.5em', width: '100%' }}>
-                    <Button name='Preview'/>
+                    <Button type={ButtonType.BUTTON} onClick={async () => {
+                        //checkIfFormIsValid();
+                        if (checkIfFormIsValid()) {
+                            //console.warn('originalEntityName.current', originalEntityName.current)
+                            console.warn([...formState.relationships]);
+                            let txt: { data: string } = await (
+                                await JsonFetch.post('entitygen',
+                                    {
+                                        name: formState.name,
+                                        columns: [...formState.columns],
+                                        relationships: [...formState.relationships],
+                                        originalEntityName: originalEntityName.current,
+                                        isEditedEntity: props.isEditedEntity
+                                    })
+                            ).json();
+                            
+                            setEntityModelTxt(txt.data);
+                            setOpen(true);
+                            originalEntityName.current = formState.name;
+                            console.log('txt', txt.data)
+                            console.log({formState});
+                        }
+                        else {
+                            const MySwal = withReactContent(Swal)
+
+                            MySwal.fire({
+                                title: <strong>Entity object is not valid!</strong>,
+                                html: <i>Please check form if some values is missing!</i>,
+                                icon: 'warning'
+                            })
+                            //alert('Entity object is not valid!')
+                        }
+
+
+                    }}>Preview</Button>
                 </Flex>
             </form>
 
         </Flex>
-        <Modal open={open} modalOpenHandler={modalOpenHandler} data={entityModelTxt} name={formState.name} />
+        <Modal open={open} modalOpenSwitcherHandler={modalOpenSwitcherHandler} data={entityModelTxt} name={formState.name} onClick={async () => { 
+            await JsonFetch.post('entitygen/finish', {});
+            modalOpenSwitcherHandler();
+            //e.preventDefault();
+            /*
+            let txt: { data: string } = await (
+                await JsonFetch.post('entitygen',
+                    {
+                        name: formState.name,
+                        columns: [...formState.columns],
+                        relationships: [...formState.relationships],
+                        originalEntityName: originalEntityName.current,
+                        isEditedEntity: props.isEditedEntity
+                    })
+            ).json();
+            setEntityModelTxt(txt.data);
+            //setOpen(true);
+            originalEntityName.current = formState.name;
+            console.log('txt', txt.data)
+            */
+            
+        }} />
 
         </>;
 

@@ -10,9 +10,14 @@ const TerserPlugin = require("terser-webpack-plugin");
 
 
 // Standard style loader (prod and dev covered here)
-const MiniCssExtractPlugin = require("mini-css-extract-plugin"); const devMode = process.env.NODE_ENV !== 'production';
+const MiniCssExtractPlugin = require("mini-css-extract-plugin"); 
+const devMode = process.env.NODE_ENV !== 'production';
 const styleLoader = devMode ? 'style-loader' : MiniCssExtractPlugin.loader;
 
+const minimizer = devMode ? null : {optimization: {
+        minimize: true,
+        minimizer: [new TerserPlugin()]
+}};
 
 module.exports = {
     mode: process.env.NODE_ENV, //,
@@ -123,11 +128,14 @@ module.exports = {
 
 
     ],
-    
+    /*
     optimization: {
         minimize: true,
-        minimizer: [new TerserPlugin()],
+        minimizer: [new TerserPlugin()]
     },
+    */
+
+    ...minimizer,
     
         /*
     splitChunks: {
@@ -149,7 +157,7 @@ module.exports = {
           key: fs.readFileSync(__dirname +  '/conf/key.pem'),
           cert: fs.readFileSync(__dirname +'/conf/cert.pem')
     },*/
-        port: 8000,
+        port: 4000,
     },
     /*
   performance: {

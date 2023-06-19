@@ -1,11 +1,21 @@
-import React from 'react';
+import React, {ReactNode} from 'react';
+//import ButtonStyles from './ButtonStyles.module.scss';
+import "./ButtonStyles.scss";
 
+export enum ButtonType {
+    'SUBMIT' = 'submit',
+    'BUTTON' = 'button'
+}
 
-const Button = (props: {name: string, styles?: Object}) => {
-    return <button type={'submit'}
-        style={{ ...props.styles,  borderRadius: '5%', padding: '1em', cursor: 'pointer', textTransform: 'uppercase', lineHeight: '0em', height: '1.2em', fontSize: '1.2em', border: 'none', background: 'grey', color: 'white' }}
+const Button = (props: { type: ButtonType, name?: string, children: ReactNode, styles?: React.CSSProperties, onClick: () => void }) => {
+    return <button 
+        type={props.type} 
+        className={'Button'} 
+        data-text={props.children}
+        style={{ ...props.styles}}
+        onClick={props.onClick}
 
-    >{props.name}</button>
+    ><span>{props.children}</span></button>
 }
 
 export default Button;

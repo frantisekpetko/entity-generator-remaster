@@ -2,7 +2,7 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 import 'react-lazy-load-image-component/src/effects/blur.css';
 import * as React from "react";
 
-export const LazyImage = (
+const LazyImage = (
     { image }:
         {
             image: {
@@ -21,3 +21,5 @@ export const LazyImage = (
         height={image.height}
     />
 );
+
+export default LazyImage;

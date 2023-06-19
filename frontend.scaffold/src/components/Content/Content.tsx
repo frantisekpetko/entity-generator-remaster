@@ -1,7 +1,4 @@
-import React, { FC } from "react";
-import Card from "@/components/Card/Card";
-import Flex from "../Flex";
-import {useLayout} from "../../utils/layout";
+import { Card }  from "@/components";
 import './ContentStyles.scss';
 
 export type CardInfo = {
@@ -36,8 +33,6 @@ const cardInfo: CardInfo[] = [
 ]
 
 export default function Content(props: any) {
-
-    let mode = useLayout();
 
     return (
         <>

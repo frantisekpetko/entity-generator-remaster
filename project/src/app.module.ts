@@ -5,8 +5,6 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { SharedModule } from './shared/shared.module';
 
-
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -16,7 +14,7 @@ import { SharedModule } from './shared/shared.module';
     TypeOrmModule.forRoot(),
     SharedModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

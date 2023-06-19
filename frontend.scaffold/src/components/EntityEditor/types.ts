@@ -24,7 +24,7 @@ export const emptyFormState = {
         datatype: 'varchar',
         notNull: true,
         unique: false,
-        index: false,
+        index: false
     }],
     relationships: [{
         type: 'OneToOne',
