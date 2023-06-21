@@ -1,5 +1,5 @@
 import { EntitygenService } from './entitygen.service';
-import { Data } from './data.dto';
+import { Data, Relationship } from './data.dto';
 import { InternalServerErrorException, Logger, OnModuleInit, OnApplicationBootstrap, Injectable, HttpException, HttpStatus, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import { OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer, WsResponse, OnGatewayConnection, WsException } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
@@ -9,6 +9,8 @@ import { WebsocketExceptionsFilter } from '../shared/websocket-exception.filter'
 import { cli } from 'winston/lib/winston/config';
 import chokidar from 'chokidar';
 import { PathsService } from './paths/paths.service';
+import { TypeOrmDataSourceFactory } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @WebSocketGateway({ namespace: '/generator', cors: true })
 @UseFilters(new WebsocketExceptionsFilter)
@@ -20,7 +22,7 @@ export class EntitygenGateway implements OnGatewayInit, OnGatewayConnection, OnM
 
     timer: NodeJS.Timeout | string | number | undefined = null;
 
-    constructor(private entityGenService: EntitygenService, private pathsService: PathsService) { }
+    constructor(private entityGenService: EntitygenService, private pathsService: PathsService, private dataSource: DataSource) { }
 
     async onModuleInit() {
         //this.wss.emit('fireSendingDataForView');
@@ -191,6 +193,29 @@ export class EntitygenGateway implements OnGatewayInit, OnGatewayConnection, OnM
     @SubscribeMessage('delete')
     async deleteEntity(client: any, entityName: string): Promise<void> {
         this.entityGenService.deleteEntity(entityName);
+        const table = entityName.split('.')[0];
+        const conn = this.dataSource;
+        const queryRunner = conn.createQueryRunner()
+        const query = await conn.manager.query(`SELECT * from sqlite_master`);
+
+        for (const entity of query) {
+            const data: Data = (await this.entityGenService.getEntityDataForView(entity.tbl_name)).data;
+            const rel = data.relationships.filter((item: Relationship) => {
+
+                return item.table !== table;
+            })
+
+            if (data.relationships.length > rel.length) {
+                let tempData = { ...data };
+                tempData.relationships = [...rel];
+                await Promise.all([
+                    this.entityGenService.createEntityFile(tempData),
+                    this.entityGenService.finishGeneratingEntityFile()
+                ])
+            }
+
+
+        }
 
         const data = await this.entityGenService.getEntityData();
         this.logger.warn(JSON.stringify(data, null, 4), 'entities');

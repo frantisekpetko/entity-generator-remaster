@@ -14,11 +14,27 @@ export class AssistantService {
     constructor(private entitygenService: EntitygenService, private pathsService: PathsService, private dataSource: DataSource) { }
 
     async createAllEntities(data) {
-        for (const schema of data) {
-            await this.entitygenService.createEntityFile(schema);
-            await this.entitygenService.finishGeneratingEntityFile();
+        try {
+            for (const schema of data) {
+                /*
+                await this.entitygenService.createEntityFile(schema);
+                this.entitygenService.finishGeneratingEntityFile();
+                */
+                await Promise.all([
+                    this.entitygenService.createEntityFile(schema),
+                    this.entitygenService.finishGeneratingEntityFile()
+               ])
+
+
+            }
+            //await this.entitygenService.finishGeneratingEntityFile();
+
         }
-        await this.entitygenService.finishGeneratingEntityFile();
+        catch (err) {
+            this.logger.error(`err ${err}`)
+            //throw new BadRequestException(err)
+        }
+
     }
 
     getSrcFiles(): Promise<string[]> {
@@ -33,7 +49,7 @@ export class AssistantService {
         const schemaPath = path.join(this.pathsService.getProcessProjectUrl(), 'src/config/databaseSchema.json');
 
         if (fs.existsSync(schemaPath)) {
-            const data = await fsPromises.readFile(path.join(this.pathsService.getProcessProjectUrl(), 'src/config/databaseSchema.json'), 'utf-8');
+            const data = await fsPromises.readFile(schemaPath, 'utf-8');
 
             const parsedData = JSON.parse(data);
 
@@ -143,7 +159,7 @@ export class AssistantService {
             ])
 
             //const query = await conn.manager.query(`select name from sqlite_master where type = 'table'`);
-            
+
             const query = await conn.manager.query(`SELECT * from sqlite_master`);
             //const count = ifTableExists[0][Object.keys(ifTableExists[0])[0]];
             this.logger.warn(JSON.stringify(query, null, 4), 'check');
@@ -154,12 +170,14 @@ export class AssistantService {
                 await queryRunner.query(`DROP table ${entity.tableName}`)
             }
             */
+            this.dataSource.dropDatabase();
+
             await queryRunner.query('PRAGMA foreign_keys = OFF')
             for (const entity of query) {
                 this.logger.log(JSON.stringify(entity.name, null, 4))
                 if (entity.name !== 'sqlite_sequence') {
                     //await queryRunner.query(`UNLOCK TABLE ${entity.tbl_name}`);
-                    await queryRunner.query(`DROP table IF EXISTS ${entity.tbl_name}`);
+                    //await queryRunner.query(`DROP table IF EXISTS ${entity.tbl_name}`);
                 }
             }
             await queryRunner.query('PRAGMA foreign_keys = ON')
@@ -188,26 +206,38 @@ export class AssistantService {
 
     async getEntityMetadata() {
         const entities = this.dataSource.entityMetadatas;
+        let csvArr: string[] = [];
 
+        let edges: {
+            source: string,
+            sourceKey: string,
+            target: string,
+            targetKey: string,
+            relation: string
+        }[] = [];
+
+        const header = '"table_schema","table_name","column_name","data_type","ordinal_position"';
+        csvArr.push(header);
 
         const schema = {
             varchar: 'character varying',
             datetime: 'timestamp without time zone',
             date: 'date',
             text: 'text',
-            integer: 'integer',
+            int: 'integer',
             json: 'json',
             primaryKey: 'bigint',
             foreignKey: 'bigint',
             boolean: 'boolean',
-            specialinteger: 'numeric'
+            specialinteger: 'numeric',
+            function: 'bigint'
 
         }
 
         let data = [];
 
         //let columnMap = {};
-        for (let[index, entity] of entities.entries()) {
+        for (let [index, entity] of entities.entries()) {
             const metadata = this.dataSource.getMetadata(entity.name); // Get repository
             let columnsData = [];
             let columns = [];
@@ -216,20 +246,95 @@ export class AssistantService {
             let columnMap = metadata.columns.map((column) => column.propertyName);
             columns.forEach((item, i) => {
                 this.logger.log(columns[i]);
-                let type = typeof columns[i] !== 'function' ? columns[i] : 'bigint';
-                columnsData.push({ name: columnMap[i], type: type })
+                //let type = columns[i];
+                let type = typeof columns[i] !== 'function' ? columns[i] : 'function';
+                columnsData.push({ name: columnMap[i], type: schema[type] })
+
+
+
+                csvArr.push(`"${'public'}","${entity.tableName}","${columnMap[i]}","${schema[type]}",${i + 1}`)
             });
+
+            const maybeManytoManyTable = entity.tableName.split('_');
+
+            if (maybeManytoManyTable.length >= 3) {
+                edges.push({
+                    source: maybeManytoManyTable[0],
+                    sourceKey: 'id',
+                    target: entity.tableName,
+                    targetKey: `${maybeManytoManyTable[0]}Id`,
+                    relation: `hasMany`
+                })
+
+                edges.push({
+                    source: maybeManytoManyTable[2],
+                    sourceKey: 'id',
+                    target: entity.tableName,
+                    targetKey: `${maybeManytoManyTable[2]}Id`,
+                    relation: `hasMany`
+                })
+            }
             //const columnMap = metadata.columns.map((column) => column.propertyName);
             //let columnMap = metadata.columns.map((column) => { name: column.propertyName, columnType: column.type });
             //columnsData.push({ name: columnMap, type: columns });
             data.push({ name: entity.tableName, data: columnsData })
-            
-
-            
         }
 
-        return data;
+        
 
 
+        const csvString = csvArr.join('\n')
+        fs.writeFileSync(`${process.cwd()}/data/schema.csv`, csvString, 'utf-8');
+        //return csvString;
+
+        await this.persistDatabaseSchema();
+
+        const schemaPath = path.join(
+            this.pathsService.getProcessProjectUrl(),
+            'src/config/databaseSchema.json'
+        );
+
+    
+
+        if (fs.existsSync(schemaPath)) {
+            const data = (await fsPromises.readFile(schemaPath, 'utf-8')).toString();
+            
+            const parsedData = JSON.parse(data);
+            
+            const example0 = {
+                "type": "OneToMany",
+                "table": "customer"
+            };
+
+
+            const example = {
+                "source": "users",
+                "sourceKey": "id",
+                "target": "purchases",
+                "targetKey": "user_id",
+                "relation": "hasMany"
+            };
+
+            parsedData.forEach(table => {
+                table.relationships.forEach((item) => {
+                    if (item.type === 'ManyToMany') {
+
+                    }
+
+                    return edges.push({
+                        source: table.name,
+                        sourceKey: 'id',
+                        target: item.table,
+                        targetKey: `${table.name}Id`,
+                        relation: `has${item.type.split(/(?=[A-Z])/)[2]}`
+                    })
+                })
+
+            });
+
+            return edges;
+        }
+
+        
     }
 }
