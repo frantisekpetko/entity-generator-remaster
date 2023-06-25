@@ -20,14 +20,17 @@ export class Admin extends BaseEntity {
    type: "varchar",   
   })
   name: string;
+  
   @Column({
    type: "text",   
   })
   password: string;
+  
   @Column({
    type: "boolean",   
   })
   superadmin: boolean;
+  
   
   @OneToMany(() => Category, (category) => category.admin)
   categorys: Category[];

@@ -8,23 +8,24 @@ import {
  UpdateDateColumn 
 } from 'typeorm';
 import {Index, ManyToOne} from 'typeorm'
+import {Order} from './order.entity';
 import {Product} from './product.entity';
 
 
-@Entity({ name: 'image' })
-export class Image extends BaseEntity { 
+@Entity({ name: 'order_to_product' })
+export class OrderToProduct extends BaseEntity { 
   @PrimaryGeneratedColumn()
   id: number;
   
   @Column({
-   type: "varchar",   
+   type: "int",   
   })
-  name: string;
+  quantity: number;
   
   @Column({
    type: "int",   
   })
-  path: number;
+  orderId: number;
   
   @Column({
    type: "int",   
@@ -32,7 +33,10 @@ export class Image extends BaseEntity {
   productId: number;
   
   
-  @ManyToOne(() => Product, (product) => product.images)
+  @ManyToOne(() => Order, (order) => order.order_to_products)
+  order: Order;
+
+  @ManyToOne(() => Product, (product) => product.order_to_products)
   product: Product;
 
   @CreateDateColumn()

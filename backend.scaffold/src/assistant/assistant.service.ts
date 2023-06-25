@@ -178,6 +178,11 @@ export class AssistantService {
                 if (entity.name !== 'sqlite_sequence') {
                     //await queryRunner.query(`UNLOCK TABLE ${entity.tbl_name}`);
                     //await queryRunner.query(`DROP table IF EXISTS ${entity.tbl_name}`);
+
+                    //let table = await queryRunner.getTable(entity.tbl_name);
+                    //await queryRunner.dropForeignKeys(entity.tbl_name, table.foreignKeys);
+                    //await queryRunner.dropTable(entity.tbl_name);
+                    
                 }
             }
             await queryRunner.query('PRAGMA foreign_keys = ON')
@@ -317,9 +322,6 @@ export class AssistantService {
 
             parsedData.forEach(table => {
                 table.relationships.forEach((item) => {
-                    if (item.type === 'ManyToMany') {
-
-                    }
 
                     return edges.push({
                         source: table.name,

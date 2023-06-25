@@ -21,34 +21,40 @@ export class Address extends BaseEntity {
    type: "varchar",   
   })
   name: string;
+  
   @Column({
    type: "varchar",   
   })
   street: string;
+  
   @Column({
    type: "varchar",   
   })
   city: string;
+  
   @Column({
    type: "varchar",   
   })
   postalCode: string;
+  
   @Column({
    type: "varchar",   
   })
   state: string;
+  
   @Column({
    type: "varchar",   
   })
   region: string;
+  
   @Column({
    type: "varchar",   
   })
   telephone: string;
   
+  
   @OneToMany(() => Customer, (customer) => customer.address)
   customers: Customer[];
-
 
   @OneToMany(() => Order, (order) => order.address)
   orders: Order[];

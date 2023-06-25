@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-
+import { toast } from 'react-toastify';
 import {  
     Button,
     Flex,
@@ -36,9 +36,22 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
         console.log('Props', Object.keys(props.data).length)
         Object.keys(props.data).length > 0 ? setFormState({...props.data}) : null;
 
-        originalEntityName.current = props.data.name;
+        let model: string = props.data.name;
+        if (!!props.data.name) {
+            model = props.data.name.split(/(?=[A-Z])/).map((item: string) => item.toLowerCase()).join('_');
+        }
+
+        originalEntityName.current = model;
         console.log(`originalEntityName.current: ${originalEntityName.current} formState.name: ${props.data.name}`);
         console.warn('xxxx', props.data);
+
+        console.warn('data check', {
+            name: formState.name,
+            columns: [...formState.columns],
+            relationships: [...formState.relationships],
+            originalEntityName: originalEntityName.current,
+            isEditedEntity: props.isEditedEntity
+        });
     }, [props.data])
 
     const [open, setOpen] = useState<boolean>(false);
@@ -83,9 +96,11 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
 
         const isValidSchema = !!formState.name && isValidColumns && isValidRelationships;
         console.warn({ isValidSchema })
+        /*
         flushSync(() => {
             setIsValidEntityObject(isValidSchema);
         })
+        */
 
         return isValidSchema;
 
@@ -481,6 +496,47 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
                         if (checkIfFormIsValid()) {
                             //console.warn('originalEntityName.current', originalEntityName.current)
                             console.warn([...formState.relationships]);
+                            console.warn('data check', {
+                                name: formState.name,
+                                columns: [...formState.columns],
+                                relationships: [...formState.relationships],
+                                originalEntityName: originalEntityName.current,
+                                isEditedEntity: props.isEditedEntity
+                            });
+
+                            let response = 
+                                await JsonFetch.post('entitygen',
+                                    {
+                                        name: formState.name,
+                                        columns: [...formState.columns],
+                                        relationships: [...formState.relationships],
+                                        originalEntityName: originalEntityName.current,
+                                        isEditedEntity: props.isEditedEntity
+                                    })
+                            ;
+
+                            //let txt: { data: string } = await response.json();
+
+                            let responseOK = response && response.ok;
+                            const data = await response.json();
+                            if (!responseOK) {
+                                console.log(response.ok);
+                                toast.error(`${data.message}'`, {
+                                    position: "top-right",
+                                    autoClose: 5000,
+                                    hideProgressBar: false,
+                                    closeOnClick: true,
+                                    pauseOnHover: true,
+                                    draggable: true,
+                                    theme: "colored",
+                                    icon: false
+                                });
+                                //context.setHasError(true);
+                                //context.setError(data.message);
+                                throw new Error(data.message);
+
+                            }
+                            /*
                             let txt: { data: string } = await (
                                 await JsonFetch.post('entitygen',
                                     {
@@ -491,11 +547,11 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
                                         isEditedEntity: props.isEditedEntity
                                     })
                             ).json();
-                            
-                            setEntityModelTxt(txt.data);
+                            */
+                            setEntityModelTxt(data.data);
                             setOpen(true);
                             originalEntityName.current = formState.name;
-                            console.log('txt', txt.data)
+                            console.log('txt', data.data)
                             console.log({formState});
                         }
                         else {
@@ -518,6 +574,35 @@ export default function EntityEditor(props: { data: any, isEditedEntity: boolean
         <Modal open={open} modalOpenSwitcherHandler={modalOpenSwitcherHandler} data={entityModelTxt} name={formState.name} onClick={async () => { 
             await JsonFetch.post('entitygen/finish', {});
             modalOpenSwitcherHandler();
+            toast.success(`The action was successfully performed!`, {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "colored",
+                icon: true
+            });
+
+            if (!props.isEditedEntity) {
+                setFormState({
+                    name: emptyFormState.name, 
+                    originalName: emptyFormState.originalName,
+                    columns: [{
+                        nameOfColumn: "",
+                        datatype: 'varchar',
+                        notNull: true,
+                        unique: false,
+                        index: false
+                    }], 
+                    relationships: [{
+                        type: 'OneToOne',
+                        table: ''
+                    }]
+                });
+            }
+                
             //e.preventDefault();
             /*
             let txt: { data: string } = await (

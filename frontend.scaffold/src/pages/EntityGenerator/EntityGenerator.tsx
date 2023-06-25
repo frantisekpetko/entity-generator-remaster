@@ -51,8 +51,19 @@ export default function Entity() {
             }
             catch(error: any) {
                 //handleError(error)
-                console.error(error);
-                //throw new Error(error.message)
+                toast.error(`${error}`, {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: "colored",
+                    icon: false
+                });
+                //context.setHasError(true);
+                //context.setError(data.message);
+                throw new Error(error);
             }
 
         })();
@@ -63,7 +74,6 @@ export default function Entity() {
  
         
         <Navigation />
-        
         <EntityEditor data={[]} heading={'Entity Generator'} entities={entities} isEditedEntity={false} />
         <Footer />
         

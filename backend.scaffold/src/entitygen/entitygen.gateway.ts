@@ -212,6 +212,10 @@ export class EntitygenGateway implements OnGatewayInit, OnGatewayConnection, OnM
                     this.entityGenService.createEntityFile(tempData),
                     this.entityGenService.finishGeneratingEntityFile()
                 ])
+
+                let qRTable = await queryRunner.getTable(table);
+                await queryRunner.dropForeignKeys(table, qRTable.foreignKeys);
+                await queryRunner.dropTable(table);
             }
 
 
@@ -219,7 +223,7 @@ export class EntitygenGateway implements OnGatewayInit, OnGatewayConnection, OnM
 
         const data = await this.entityGenService.getEntityData();
         this.logger.warn(JSON.stringify(data, null, 4), 'entities');
-        //
+
         this.wss.emit('entities', data);
 
 

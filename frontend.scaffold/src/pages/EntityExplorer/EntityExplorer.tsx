@@ -8,6 +8,11 @@ import { useNavigate } from 'react-router-dom';
 import io, { Socket } from 'socket.io-client';
 import { toast } from 'react-toastify';
 
+const Comp = (props:any) => {
+    const {err, text} = props;
+    return <>Websockets connection problem.<br/>{text}</>
+}
+
 export default function EntityExplorer(props: any): ReturnType<React.FC> {
 
     const [entities, setEntities] = useState<{ entityName: string, filename: string, table: string }[]>([]);
@@ -60,7 +65,21 @@ export default function EntityExplorer(props: any): ReturnType<React.FC> {
 
         socket.current.on('update', (data: any) => console.log(data))
 
-        socket.current.on('connect_error', (err: any) => console.log(err))
+        socket.current.on('connect_error', (err: any) => {
+            console.log(err);
+            toast.dismiss()
+            toast.error((<Comp err={err} text={'Try start your server first!'} />), {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "colored",
+                icon: true
+            });
+            setLoading(false);
+        })
         socket.current.on('connect_failed', (err: any) => console.log(err))
         socket.current.on('disconnect', (err: any) => console.log(err))
 
@@ -119,7 +138,8 @@ export default function EntityExplorer(props: any): ReturnType<React.FC> {
                                     display: 'flex',
                                     cursor: 'pointer'
                                 }}
-                                    onClick={() => openInNewTab(`/explorer/${item.table}`)/*navigate(`/explorer/${item.table}`)*/}
+                                    //onClick={() => openInNewTab(`/explorer/${item.table}`)/*navigate(`/explorer/${item.table}`)*/}
+                                    onClick={() => navigate(`/explorer/${item.table}`)}
                                 >
                                     <b
                                         style={{
@@ -175,7 +195,7 @@ export default function EntityExplorer(props: any): ReturnType<React.FC> {
                     : <Flex justifyContent='center'><span className={EntityStyles.loading}></span></Flex>}
                 {/*<p style={{textAlign: 'center'}}>Loading ...</p>}*/}
 
-                {entities.length < 1 && 
+                {(entities.length < 1 && !loading) && 
                     <Flex justifyContent='center'><span>No data</span></Flex>
                 }
             </ul>

@@ -21,22 +21,25 @@ export class Category extends BaseEntity {
    type: "varchar",   
   })
   title: string;
+  
   @Column({
    type: "int",   
   })
   productCount: number;
+  
   @Column({
    type: "int",   
   })
   parentId: number;
+  
   @Column({
    type: "int",   
   })
   adminId: number;
   
+  
   @ManyToOne(() => Admin, (admin) => admin.categorys)
   admin: Admin;
-
 
   @OneToMany(() => Product, (product) => product.category)
   products: Product[];

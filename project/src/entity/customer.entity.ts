@@ -21,30 +21,35 @@ export class Customer extends BaseEntity {
    type: "varchar",   
   })
   name: string;
+  
   @Column({
    type: "varchar",   
   })
   email: string;
+  
   @Column({
    type: "varchar",   
   })
   password: string;
+  
   @Column({
    type: "varchar",   
   })
   authStatus: string;
+  
   @Column({
    type: "datetime",   
   })
   bannedAt: string;
+  
   @Column({
    type: "int",   
   })
   addressId: number;
   
+  
   @ManyToOne(() => Address, (address) => address.customers)
   address: Address;
-
 
   @OneToMany(() => Order, (order) => order.customer)
   orders: Order[];

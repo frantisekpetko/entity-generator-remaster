@@ -53,14 +53,6 @@
             }
         ],
         "relationships": [
-            {
-                "type": "OneToMany",
-                "table": "customer"
-            },
-            {
-                "type": "OneToMany",
-                "table": "order"
-            }
         ]
     },
     {
@@ -89,10 +81,6 @@
             }
         ],
         "relationships": [
-            {
-                "type": "OneToMany",
-                "table": "category"
-            }
         ]
     },
     {
@@ -128,14 +116,6 @@
             }
         ],
         "relationships": [
-            {
-                "type": "ManyToOne",
-                "table": "admin"
-            },
-            {
-                "type": "OneToMany",
-                "table": "product"
-            }
         ]
     },
     {
@@ -185,14 +165,6 @@
             }
         ],
         "relationships": [
-            {
-                "type": "ManyToOne",
-                "table": "address"
-            },
-            {
-                "type": "OneToMany",
-                "table": "order"
-            }
         ]
     },
     {
@@ -221,10 +193,6 @@
             }
         ],
         "relationships": [
-            {
-                "type": "ManyToOne",
-                "table": "product"
-            }
         ]
     },
     {
@@ -274,18 +242,6 @@
             }
         ],
         "relationships": [
-            {
-                "type": "ManyToOne",
-                "table": "address"
-            },
-            {
-                "type": "ManyToOne",
-                "table": "customer"
-            },
-            {
-                "type": "OneToMany",
-                "table": "order_to_product"
-            }
         ]
     },
     {
@@ -314,14 +270,6 @@
             }
         ],
         "relationships": [
-            {
-                "type": "ManyToOne",
-                "table": "order"
-            },
-            {
-                "type": "ManyToOne",
-                "table": "product"
-            }
         ]
     },
     {
@@ -399,18 +347,6 @@
             }
         ],
         "relationships": [
-            {
-                "type": "ManyToOne",
-                "table": "category"
-            },
-            {
-                "type": "OneToMany",
-                "table": "image"
-            },
-            {
-                "type": "OneToMany",
-                "table": "order_to_product"
-            }
         ]
     }
 ]

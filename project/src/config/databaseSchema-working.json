@@ -1,6 +1,6 @@
 [
     {
-        "name": "Address",
+        "name": "address",
         "columns": [
             {
                 "nameOfColumn": "name",
@@ -64,7 +64,7 @@
         ]
     },
     {
-        "name": "Admin",
+        "name": "admin",
         "columns": [
             {
                 "nameOfColumn": "name",
@@ -96,7 +96,7 @@
         ]
     },
     {
-        "name": "Category",
+        "name": "category",
         "columns": [
             {
                 "nameOfColumn": "title",
@@ -139,7 +139,7 @@
         ]
     },
     {
-        "name": "Customer",
+        "name": "customer",
         "columns": [
             {
                 "nameOfColumn": "name",
@@ -186,17 +186,17 @@
         ],
         "relationships": [
             {
-                "type": "ManyToOne",
-                "table": "address"
-            },
-            {
                 "type": "OneToMany",
                 "table": "order"
+            },
+            {
+                "type": "ManyToOne",
+                "table": "address"
             }
         ]
     },
     {
-        "name": "Image",
+        "name": "image",
         "columns": [
             {
                 "nameOfColumn": "name",
@@ -228,7 +228,7 @@
         ]
     },
     {
-        "name": "Order",
+        "name": "order",
         "columns": [
             {
                 "nameOfColumn": "mailTypeOrder",
@@ -275,21 +275,21 @@
         ],
         "relationships": [
             {
+                "type": "OneToMany",
+                "table": "ordertoproduct"
+            },
+            {
                 "type": "ManyToOne",
                 "table": "address"
             },
             {
                 "type": "ManyToOne",
                 "table": "customer"
-            },
-            {
-                "type": "OneToMany",
-                "table": "order_to_product"
             }
         ]
     },
     {
-        "name": "OrderToProduct",
+        "name": "ordertoproduct",
         "columns": [
             {
                 "nameOfColumn": "quantity",
@@ -316,16 +316,16 @@
         "relationships": [
             {
                 "type": "ManyToOne",
-                "table": "order"
+                "table": "product"
             },
             {
                 "type": "ManyToOne",
-                "table": "product"
+                "table": "order"
             }
         ]
     },
     {
-        "name": "Product",
+        "name": "product",
         "columns": [
             {
                 "nameOfColumn": "name",
@@ -405,11 +405,11 @@
             },
             {
                 "type": "OneToMany",
-                "table": "image"
+                "table": "ordertoproduct"
             },
             {
                 "type": "OneToMany",
-                "table": "order_to_product"
+                "table": "image"
             }
         ]
     }
